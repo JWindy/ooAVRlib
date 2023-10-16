@@ -4,7 +4,7 @@ I started my first embedded projects with Arduino. Due to high power consumption
 # Work in progress
 I'm currently working on the initial implementation of the libraries. As soon as the first libraries are tested and ready for use, I'll upload a release.
 
-# How to use the repository
+# How to use the libraries
 For every library, you'll find the following folders:
 - assets -> any further information like block diagrams or state machines.
 - hardware -> This folder contains the design of the hardware used for testing the library. For basic libraries, I'll use a debugging board solderd on a prototype board, which you can find in the folder "debugging boards".
