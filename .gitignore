@@ -37,4 +37,8 @@
 
 # Stuff
 *.txt
+<<<<<<< Updated upstream
 *.zip
+=======
+/libIoHandler.X/build/
+>>>>>>> Stashed changes
