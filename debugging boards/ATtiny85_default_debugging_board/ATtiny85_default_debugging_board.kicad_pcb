@@ -8,6 +8,7 @@
   (title_block
     (title "ATtiny 85 default debugging board")
     (date "2023-10-16")
+    (comment 1 "copyright applies according to LICENSE_hardware.md in GitHub root folder")
   )
 
   (layers
@@ -45,7 +46,7 @@
   (setup
     (pad_to_mask_clearance 0)
     (pcbplotparams
-      (layerselection 0x00010fc_ffffffff)
+      (layerselection 0x0008000_ffffffff)
       (disableapertmacros false)
       (usegerberextensions false)
       (usegerberattributes true)
@@ -54,7 +55,7 @@
       (svguseinch false)
       (svgprecision 6)
       (excludeedgelayer true)
-      (plotframeref false)
+      (plotframeref true)
       (viasonmask false)
       (mode 1)
       (useauxorigin false)
@@ -71,9 +72,9 @@
       (plotinvisibletext false)
       (sketchpadsonfab false)
       (subtractmaskfromsilk false)
-      (outputformat 1)
+      (outputformat 4)
       (mirror false)
-      (drillshape 1)
+      (drillshape 0)
       (scaleselection 1)
       (outputdirectory "")
     )

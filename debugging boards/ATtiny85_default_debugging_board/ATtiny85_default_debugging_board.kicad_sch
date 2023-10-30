@@ -8,6 +8,7 @@
     (title "ATtiny 85 default debugging board")
     (date "2023-10-15")
     (rev "1.0")
+    (comment 1 "copyright applies according to LICENSE_hardware.md in GitHub root folder")
   )
 
   (lib_symbols
