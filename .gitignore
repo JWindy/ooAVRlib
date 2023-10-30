@@ -34,11 +34,13 @@
 #KiC  ad
 *.kicad_pcb-bak
 *-backups/
+*.kicad_prl
+*.sch-bak
+*.kicad_pcb-bak
+fp-info-cache
 
 # Stuff
 *.txt
-<<<<<<< Updated upstream
 *.zip
 =======
 /libIoHandler.X/build/
->>>>>>> Stashed changes
