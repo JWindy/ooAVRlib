@@ -31,4 +31,9 @@
 *.out
 *.app
 
+#KiC  ad
+*.kicad_pcb-bak
+
+# Stuff
 *.txt
+*.zip
