@@ -33,6 +33,7 @@
 
 #KiC  ad
 *.kicad_pcb-bak
+*-backups
 
 # Stuff
 *.txt
