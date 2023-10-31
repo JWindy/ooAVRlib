@@ -1,9 +1,12 @@
-
+// testing application for libUartTx
+// copyright applies according to LICENSE_software.md in GitHub root folder
 
 #include "ioMapUartTx.h"
 #include "libUartTx.h"
 
-#define BAUD 9600
+#ifndef BAUD
+    #define BAUD 9600
+#endif
 
 #ifndef F_CPU
     #define F_CPU 8000000

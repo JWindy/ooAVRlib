@@ -15,7 +15,7 @@
  References:    Elicia White, Making Embedded Systems, O'Reilly 2012
  
   Comment:      Not yet relevant, but in case there is several hardware, it 
-                will be easier to change a define in the header instead of 
+                will be easier to change a define in the source file instead of 
                 selecting the correct IO map in every library.
  
  Copyright:     see LICENSE_software.md in GitHub root folder

@@ -1,9 +1,11 @@
 // see header for description and other information
 // copyright applies according to LICENSE_software.md in GitHub root folder
 
-//in init script, check, if BAUD rate is defined
-
 #include "libUartTx.h"
+#include "libIOHandler.h"
+
+#include <avr/interrupt.h>
+#include <util/delay.h>
 
 void UartTx::init(void){
     //txPin = TX_PIN;

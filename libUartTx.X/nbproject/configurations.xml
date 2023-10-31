@@ -32,7 +32,7 @@
         <targetDevice>ATtiny85</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>AtmelIceTool</platformTool>
+        <platformTool>noID</platformTool>
         <languageToolchain>AVR</languageToolchain>
         <languageToolchainVersion>1.00</languageToolchainVersion>
         <platform>2</platform>
@@ -45,6 +45,8 @@
       <compileType>
         <linkerTool>
           <linkerLibItems>
+            <linkerLibFileItem>lib/libIOHandler.cpp</linkerLibFileItem>
+            <linkerLibFileItem>lib/libIOHandler.h</linkerLibFileItem>
           </linkerLibItems>
         </linkerTool>
         <archiverTool>
@@ -97,7 +99,7 @@
         <property key="optimization-level" value="-O1"/>
         <property key="pack-struct" value="true"/>
         <property key="preprocess-only" value="false"/>
-        <property key="preprocessor-macros" value=""/>
+        <property key="preprocessor-macros" value="BAUD=9600;F_CPU=8000000"/>
         <property key="preprocessor-macros-undefined" value=""/>
         <property key="save-temps" value="false"/>
         <property key="short-calls" value="false"/>
@@ -137,7 +139,7 @@
         <property key="verbose" value="false"/>
       </AVR-GCC>
       <AVR-Global>
-        <property key="common-include-directories" value=""/>
+        <property key="common-include-directories" value="lib"/>
         <property key="eep" value="false"/>
         <property key="external-ram-check" value="false"/>
         <property key="hex" value="true"/>
@@ -170,9 +172,10 @@
       <AtmelIceTool>
         <property key="AutoSelectMemRanges" value="auto"/>
         <property key="communication.activationmode" value="nohv"/>
-        <property key="communication.interface"
-                  value="${communication.interface.default}"/>
+        <property key="communication.interface" value="dw"/>
         <property key="communication.speed" value="${communication.speed.default}"/>
+        <property key="debugoptions.debug-startup" value="Use system settings"/>
+        <property key="debugoptions.reset-behaviour" value="Use system settings"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
         <property key="firmware.path"
                   value="Press to browse for a specific firmware version"/>
@@ -212,9 +215,10 @@
       <Tool>
         <property key="AutoSelectMemRanges" value="auto"/>
         <property key="communication.activationmode" value="nohv"/>
-        <property key="communication.interface"
-                  value="${communication.interface.default}"/>
+        <property key="communication.interface" value="dw"/>
         <property key="communication.speed" value="${communication.speed.default}"/>
+        <property key="debugoptions.debug-startup" value="Use system settings"/>
+        <property key="debugoptions.reset-behaviour" value="Use system settings"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
         <property key="firmware.path"
                   value="Press to browse for a specific firmware version"/>
