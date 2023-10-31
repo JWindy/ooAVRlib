@@ -2,7 +2,7 @@
 // copyright applies according to LICENSE_software.md in GitHub root folder
 
 #include "libIOHandler.h"
-//change applied on git hub
+
 void libIOHandler::setPinOutput(uint8_t argPin){
     uint8_t ddrPin = getDdr(argPin);   
     DDRB |= (1 << ddrPin);
