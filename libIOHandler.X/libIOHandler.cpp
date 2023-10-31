@@ -1,35 +1,24 @@
 // see header for description and other information
 // copyright applies according to LICENSE_software.md in GitHub root folder
 
-//ToDo
-// Inline declaration in header?
-
-#include <avr/io.h>
 #include "libIOHandler.h"
 
-
-//void init(void){
-    #ifndef __AVR_ATtiny85__
-        #error "libIOHandler not implemented for selected MUC."
-    #endif
-//}
-
-inline void setPinOutput(uint8_t argPin){
+void libIOHandler::setPinOutput(uint8_t argPin){
     uint8_t ddrPin = getDdr(argPin);   
     DDRB |= (1 << ddrPin);
     setPinLow(argPin);
 }
-        
-inline void setPinHigh(uint8_t argPin){
+      
+void libIOHandler::setPinHigh(uint8_t argPin){
     PORTB |= (1 << argPin); 
 }
 
-inline void setPinLow(uint8_t argPin){
+void libIOHandler::setPinLow(uint8_t argPin){
     PORTB &= ~(1 << argPin); 
 }
 
-inline void togglePin(uint8_t argPin){
-    if(readPin(argPin)){
+void libIOHandler::togglePin(uint8_t argPin){
+    if(readPinRaw(argPin)){
         setPinLow(argPin);
     }
     else{
@@ -37,7 +26,7 @@ inline void togglePin(uint8_t argPin){
     }
 }
 
-inline void setPinInput(uint8_t argPin, uint8_t argPullUp = false){
+void libIOHandler::setPinInput(uint8_t argPin, uint8_t argPullUp){
     uint8_t ddrPin = getDdr(argPin);
     
     DDRB &= ~(1 << ddrPin);
@@ -50,11 +39,11 @@ inline void setPinInput(uint8_t argPin, uint8_t argPullUp = false){
     }
 }
 
-uint8_t readPin(uint8_t argPin){
+uint8_t libIOHandler::readPinRaw(uint8_t argPin){
     uint8_t pinState = PINB & (1 << argPin);
     return pinState;
-}
-
+}   
+        
 /*
 void configureInterrupt(uint8_t argPin, uint8_t argTriggerType, 
 uint8_t argTriggerState){
@@ -74,7 +63,7 @@ void disableInterruptOnPin(uint8_t argPin){
     
 } */
 
-uint8_t getDdr(uint8_t argPin){
+uint8_t libIOHandler::getDdr(uint8_t argPin){
     uint8_t ddrPin = 0;
     
     #ifdef __AVR_ATtiny85__

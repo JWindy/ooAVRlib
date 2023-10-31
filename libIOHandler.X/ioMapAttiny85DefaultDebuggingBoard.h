@@ -12,8 +12,7 @@
  
  Supported MUC: ATtiny85
  
- References:
-    - Elicia White, Making Embedded Systems, O'Reilly 2012
+ References:    Elicia White, Making Embedded Systems, O'Reilly 2012
  
  Copyright:     see LICENSE_software.md in GitHub root folder
  *--------------------------------------------------------------------*/
