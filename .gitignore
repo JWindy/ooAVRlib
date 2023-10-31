@@ -40,15 +40,20 @@
 fp-info-cache
 
 #MPlab
-/.generated_files/*
-/dist/*
-/build/*
-/debug/*
+*/.generated_files/*
+*/dist/*
+*/build/*
+*/debug/*
 /libIOHandler.X/build/
 /libIOHandler.X/dist/
 /libIOHandler.X/.generated_files
+/libUartTx.X/build/
+/libUartTx.X/dist/
+/libUartTx.X/.generated_files
+
 
 # Stuff
 *.txt
 *.zip
 =======
+/libUartTx.X/build/
