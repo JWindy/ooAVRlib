@@ -31,13 +31,16 @@
 *.out
 *.app
 
-#KiC  ad
+#KiCad
 *.kicad_pcb-bak
 *-backups/
 *.kicad_prl
 *.sch-bak
 *.kicad_pcb-bak
 fp-info-cache
+
+#MPlab
+*.generated_files/*
 
 # Stuff
 *.txt
