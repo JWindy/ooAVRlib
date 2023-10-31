@@ -46,6 +46,7 @@ fp-info-cache
 /debug/*
 /libIOHandler.X/build/
 /libIOHandler.X/dist/
+/libIOHandler.X/.generated_files
 
 # Stuff
 *.txt
