@@ -47,3 +47,6 @@ fp-info-cache
 *.zip
 =======
 /libIoHandler.X/build/
+/libIoHandler.X/dist/
+/libIOHandler.X/build/
+/libIOHandler.X/dist/
