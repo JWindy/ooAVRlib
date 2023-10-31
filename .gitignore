@@ -41,12 +41,11 @@ fp-info-cache
 
 #MPlab
 *.generated_files/*
+*dist/*
+/libIOHandler.X/build/
+/libIOHandler.X/dist/
 
 # Stuff
 *.txt
 *.zip
 =======
-/libIoHandler.X/build/
-/libIoHandler.X/dist/
-/libIOHandler.X/build/
-/libIOHandler.X/dist/
