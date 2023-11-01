@@ -6,12 +6,12 @@ I'm currently working on the initial implementation of the libraries. As soon as
 
 # How to use the libraries
 For every library, you'll find the following folders:
-- assets -> any further information like block diagrams or state machines.
+- assets -> any further information like class or block diagrams, if relevant.
 - hardware -> This folder contains the design of the hardware used for testing the library. For basic libraries, I'll use a debugging board solderd on a prototype board, which you can find in the folder "debugging boards".
 - lib -> If other libraries are required for running the library, the corresponding files are copied here.
 - libXX.cpp -> source file
 - libXX.h -> header file
-- testLibXX.cpp -> test file
+- libXXTest.cpp -> test file
 
 # Microcontrollers
 For now, the libraries will be implemented for ATtiny 85. I plan on supporting ATtiny 84 and ATmega 328 in the future.
@@ -19,5 +19,5 @@ For now, the libraries will be implemented for ATtiny 85. I plan on supporting A
 # Toolchain
 - coding: MPLAB® X IDE -> https://www.microchip.com/en-us/tools-resources/develop/mplab-x-ide
 - programming and debugging: ATMEL-ICE -> https://www.microchip.com/en-us/development-tool/atatmel-ice
-- schematics and layouts: Ki CAD -> https://www.kicad.org/
+- schematics and layouts: KiCad -> https://www.kicad.org/
 
