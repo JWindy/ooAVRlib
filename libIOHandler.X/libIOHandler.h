@@ -3,7 +3,7 @@
   
  Author:        Johannes Windmiler
  
- Dependencies:  libUtility
+ Dependencies:  libUtility <= v0.1
  
  Version:       v0.1
  
