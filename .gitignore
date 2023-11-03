@@ -51,9 +51,9 @@ fp-info-cache
 /libUartTx.X/dist/
 /libUartTx.X/.generated_files
 
-
 # Stuff
 *.txt
 *.zip
+updateAvailableLibrariesInTemplate.py
 =======
 /libUartTx.X/build/
