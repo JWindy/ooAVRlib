@@ -30,12 +30,12 @@ ifeq ($(TYPE_IMAGE), DEBUG_RUN)
 IMAGE_TYPE=debug
 OUTPUT_SUFFIX=elf
 DEBUGGABLE_SUFFIX=elf
-FINAL_IMAGE=${DISTDIR}/projectTemplat.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+FINAL_IMAGE=${DISTDIR}/projectTemplate.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 else
 IMAGE_TYPE=production
 OUTPUT_SUFFIX=hex
 DEBUGGABLE_SUFFIX=elf
-FINAL_IMAGE=${DISTDIR}/projectTemplat.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+FINAL_IMAGE=${DISTDIR}/projectTemplate.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 endif
 
 ifeq ($(COMPARE_BUILD), true)
@@ -92,7 +92,7 @@ FIXDEPS=fixDeps
 ifneq ($(INFORMATION_MESSAGE), )
 	@echo $(INFORMATION_MESSAGE)
 endif
-	${MAKE}  -f nbproject/Makefile-default.mk ${DISTDIR}/projectTemplat.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+	${MAKE}  -f nbproject/Makefile-default.mk ${DISTDIR}/projectTemplate.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 
 MP_PROCESSOR_OPTION=ATtiny85
 # ------------------------------------------------------------------------------------
@@ -116,26 +116,26 @@ endif
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: compileCPP
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-${OBJECTDIR}/projectTemplate.o: projectTemplate.cpp  .generated_files/flags/default/bc043b89b684595ac8a29bf8426519f26500634c .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/projectTemplate.o: projectTemplate.cpp  .generated_files/flags/default/214cedb40f0c1e7147c5720d155fdf66f3d7bb40 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/projectTemplate.o.d 
 	@${RM} ${OBJECTDIR}/projectTemplate.o 
 	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/projectTemplate.o.d" -MT "${OBJECTDIR}/projectTemplate.o.d" -MT ${OBJECTDIR}/projectTemplate.o  -o ${OBJECTDIR}/projectTemplate.o projectTemplate.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
-${OBJECTDIR}/projectTemplateTest.o: projectTemplateTest.cpp  .generated_files/flags/default/533b744c46787dcc74033fb59272bfa3f0d3aaa3 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/projectTemplateTest.o: projectTemplateTest.cpp  .generated_files/flags/default/97b2fd6007f3abf08c103baefe1c5c919a7b09d2 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/projectTemplateTest.o.d 
 	@${RM} ${OBJECTDIR}/projectTemplateTest.o 
 	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/projectTemplateTest.o.d" -MT "${OBJECTDIR}/projectTemplateTest.o.d" -MT ${OBJECTDIR}/projectTemplateTest.o  -o ${OBJECTDIR}/projectTemplateTest.o projectTemplateTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
 else
-${OBJECTDIR}/projectTemplate.o: projectTemplate.cpp  .generated_files/flags/default/499dd36f6b786e98dd7a7249241f5e7bacfd0ef5 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/projectTemplate.o: projectTemplate.cpp  .generated_files/flags/default/7d849f756c53a73071d65e1f8dc47bb131c23bc .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/projectTemplate.o.d 
 	@${RM} ${OBJECTDIR}/projectTemplate.o 
 	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/projectTemplate.o.d" -MT "${OBJECTDIR}/projectTemplate.o.d" -MT ${OBJECTDIR}/projectTemplate.o  -o ${OBJECTDIR}/projectTemplate.o projectTemplate.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
-${OBJECTDIR}/projectTemplateTest.o: projectTemplateTest.cpp  .generated_files/flags/default/5d352ccf2b4b68235c4189b590a2ed408a481ca1 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/projectTemplateTest.o: projectTemplateTest.cpp  .generated_files/flags/default/58ca4574b9bdd47e2a5cfb9052955358afa6b480 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/projectTemplateTest.o.d 
 	@${RM} ${OBJECTDIR}/projectTemplateTest.o 
@@ -146,9 +146,9 @@ endif
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: link
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-${DISTDIR}/projectTemplat.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk    
+${DISTDIR}/projectTemplate.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk    
 	@${MKDIR} ${DISTDIR} 
-	${MP_CPPC} $(MP_EXTRA_LD_PRE) -mmcu=attiny85 ${PACK_COMMON_OPTIONS}   -gdwarf-2 -D__$(MP_PROCESSOR_OPTION)__  -Wl,-Map="${DISTDIR}/projectTemplat.X.${IMAGE_TYPE}.map"    -o ${DISTDIR}/projectTemplat.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}      -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION),--defsym=__ICD2RAM=1,--defsym=__MPLAB_DEBUG=1,--defsym=__DEBUG=1 -Wl,--gc-sections -Wl,--start-group  -Wl,-lm -Wl,--end-group 
+	${MP_CPPC} $(MP_EXTRA_LD_PRE) -mmcu=attiny85 ${PACK_COMMON_OPTIONS}   -gdwarf-2 -D__$(MP_PROCESSOR_OPTION)__  -Wl,-Map="${DISTDIR}/projectTemplate.X.${IMAGE_TYPE}.map"    -o ${DISTDIR}/projectTemplate.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}      -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION),--defsym=__ICD2RAM=1,--defsym=__MPLAB_DEBUG=1,--defsym=__DEBUG=1 -Wl,--gc-sections -Wl,--start-group  -Wl,-lm -Wl,--end-group 
 	
 	
 	
@@ -156,10 +156,10 @@ ${DISTDIR}/projectTemplat.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbpr
 	
 	
 else
-${DISTDIR}/projectTemplat.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
+${DISTDIR}/projectTemplate.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
 	@${MKDIR} ${DISTDIR} 
-	${MP_CPPC} $(MP_EXTRA_LD_PRE) -mmcu=attiny85 ${PACK_COMMON_OPTIONS}  -D__$(MP_PROCESSOR_OPTION)__  -Wl,-Map="${DISTDIR}/projectTemplat.X.${IMAGE_TYPE}.map"    -o ${DISTDIR}/projectTemplat.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}      -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION) -Wl,--gc-sections -Wl,--start-group  -Wl,-lm -Wl,--end-group 
-	${MP_CC_DIR}/avr-objcopy -O ihex "${DISTDIR}/projectTemplat.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX}" "${DISTDIR}/projectTemplat.X.${IMAGE_TYPE}.hex"
+	${MP_CPPC} $(MP_EXTRA_LD_PRE) -mmcu=attiny85 ${PACK_COMMON_OPTIONS}  -D__$(MP_PROCESSOR_OPTION)__  -Wl,-Map="${DISTDIR}/projectTemplate.X.${IMAGE_TYPE}.map"    -o ${DISTDIR}/projectTemplate.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}      -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION) -Wl,--gc-sections -Wl,--start-group  -Wl,-lm -Wl,--end-group 
+	${MP_CC_DIR}/avr-objcopy -O ihex "${DISTDIR}/projectTemplate.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX}" "${DISTDIR}/projectTemplate.X.${IMAGE_TYPE}.hex"
 	
 	
 	

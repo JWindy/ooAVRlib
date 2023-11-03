@@ -3,7 +3,7 @@ Description:    short description
   
 Author:         Johannes Windmiler
 
-Dependencies:  if any
+Dependencies:   HW dependencies ??, check #include for required libraries
  
 Version:        v<major.minor>
 
@@ -22,7 +22,7 @@ Copyright:      see LICENSE_software.md in git hub root folder
 #define	PROJECTTEMPLATE_H
 
 #include <avr/io.h>
-#include "libUtility.h"
+#include "libUtility.h"	//v0.1
 
 class classTemplate{
     public:
