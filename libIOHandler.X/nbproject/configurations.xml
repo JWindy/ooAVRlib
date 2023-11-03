@@ -6,6 +6,7 @@
                    projectFiles="true">
       <itemPath>libIOHandler.h</itemPath>
       <itemPath>ioMapAttiny85DefaultDebuggingBoard.h</itemPath>
+      <itemPath>lib/libUtility.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -23,6 +24,9 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>lib</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="default" type="2">
@@ -136,7 +140,7 @@
         <property key="verbose" value="false"/>
       </AVR-GCC>
       <AVR-Global>
-        <property key="common-include-directories" value=""/>
+        <property key="common-include-directories" value="lib"/>
         <property key="eep" value="false"/>
         <property key="external-ram-check" value="false"/>
         <property key="hex" value="true"/>
@@ -194,8 +198,6 @@
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-fff"/>
         <property key="poweroptions.powerenable" value="false"/>
-        <property key="programmerToGoFilePath"
-                  value="/home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libIOHandler.X/debug/default/libIOHandler_ptg"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges" value="0-1ff"/>
@@ -239,6 +241,8 @@
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-fff"/>
         <property key="poweroptions.powerenable" value="false"/>
+        <property key="programmerToGoFilePath"
+                  value="/home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libIOHandler.X/debug/default/libIOHandler_ptg"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges" value="0-1ff"/>

@@ -116,30 +116,30 @@ endif
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: compileCPP
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-${OBJECTDIR}/libIOHandler.o: libIOHandler.cpp  .generated_files/flags/default/5a32afc38557da8063a5be5347578acccdffc5c8 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/libIOHandler.o: libIOHandler.cpp  .generated_files/flags/default/c2da153de1a5c9ae993fbeaba9ff4fdb1fc522cd .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/libIOHandler.o.d 
 	@${RM} ${OBJECTDIR}/libIOHandler.o 
-	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libIOHandler.o.d" -MT "${OBJECTDIR}/libIOHandler.o.d" -MT ${OBJECTDIR}/libIOHandler.o  -o ${OBJECTDIR}/libIOHandler.o libIOHandler.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libIOHandler.o.d" -MT "${OBJECTDIR}/libIOHandler.o.d" -MT ${OBJECTDIR}/libIOHandler.o  -o ${OBJECTDIR}/libIOHandler.o libIOHandler.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
-${OBJECTDIR}/libIOHandlerTest.o: libIOHandlerTest.cpp  .generated_files/flags/default/a21369dfd6afe7c510ae1c33f65f4ff2fc4a1350 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/libIOHandlerTest.o: libIOHandlerTest.cpp  .generated_files/flags/default/5f133c14ab60607d66214a4be86d0a4091c2bd79 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/libIOHandlerTest.o.d 
 	@${RM} ${OBJECTDIR}/libIOHandlerTest.o 
-	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libIOHandlerTest.o.d" -MT "${OBJECTDIR}/libIOHandlerTest.o.d" -MT ${OBJECTDIR}/libIOHandlerTest.o  -o ${OBJECTDIR}/libIOHandlerTest.o libIOHandlerTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libIOHandlerTest.o.d" -MT "${OBJECTDIR}/libIOHandlerTest.o.d" -MT ${OBJECTDIR}/libIOHandlerTest.o  -o ${OBJECTDIR}/libIOHandlerTest.o libIOHandlerTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
 else
-${OBJECTDIR}/libIOHandler.o: libIOHandler.cpp  .generated_files/flags/default/d0cfc7d7280f70654e6b8f7f53d9d165cbdbecdc .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/libIOHandler.o: libIOHandler.cpp  .generated_files/flags/default/9a50273ecb01549897b5e9dc920395d694f0e5b5 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/libIOHandler.o.d 
 	@${RM} ${OBJECTDIR}/libIOHandler.o 
-	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libIOHandler.o.d" -MT "${OBJECTDIR}/libIOHandler.o.d" -MT ${OBJECTDIR}/libIOHandler.o  -o ${OBJECTDIR}/libIOHandler.o libIOHandler.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libIOHandler.o.d" -MT "${OBJECTDIR}/libIOHandler.o.d" -MT ${OBJECTDIR}/libIOHandler.o  -o ${OBJECTDIR}/libIOHandler.o libIOHandler.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
-${OBJECTDIR}/libIOHandlerTest.o: libIOHandlerTest.cpp  .generated_files/flags/default/ea6d98c9e3a32887888078dbdea480fabc21ed4a .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/libIOHandlerTest.o: libIOHandlerTest.cpp  .generated_files/flags/default/c6992a5b5517c775efa80f7ab14aa0915b95453 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/libIOHandlerTest.o.d 
 	@${RM} ${OBJECTDIR}/libIOHandlerTest.o 
-	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libIOHandlerTest.o.d" -MT "${OBJECTDIR}/libIOHandlerTest.o.d" -MT ${OBJECTDIR}/libIOHandlerTest.o  -o ${OBJECTDIR}/libIOHandlerTest.o libIOHandlerTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libIOHandlerTest.o.d" -MT "${OBJECTDIR}/libIOHandlerTest.o.d" -MT ${OBJECTDIR}/libIOHandlerTest.o  -o ${OBJECTDIR}/libIOHandlerTest.o libIOHandlerTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
 endif
 
