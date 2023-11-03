@@ -1,9 +1,9 @@
 /*--------------------------------------------------------------------
  Description:   Provides generic IO handling functionality
   
- Author:        Johannes Windmiler
+ Author:        Johannes Windmiller
  
- Dependencies:  libUtility <= v0.1
+ Dependencies:  no HW dependencies, check #include for required libraries
  
  Version:       v0.1
  
@@ -20,7 +20,7 @@
 #define	LIBIOHANDLER_H
 
 #include <avr/io.h>
-#include "libUtility.h"
+#include "libUtility.h" //v0.1
 
 class libIOHandler{
     public:

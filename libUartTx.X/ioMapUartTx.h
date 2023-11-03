@@ -2,7 +2,7 @@
  Description:   Provides the IO mapping depending on the HW selected in 
                 libUartTx.h 
   
- Author:        Johannes Windmiler
+ Author:        Johannes Windmiller
  
  Dependencies:  none
  

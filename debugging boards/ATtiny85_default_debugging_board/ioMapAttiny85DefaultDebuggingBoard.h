@@ -2,7 +2,7 @@
  Description:   Provides the IO mapping for the ATtiny 85 default debugging
                 board
   
- Author:        Johannes Windmiler
+ Author:        Johannes Windmiller
  
  Dependencies:  none
  

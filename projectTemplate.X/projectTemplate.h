@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------
 Description:    short description
   
-Author:         Johannes Windmiler
+Author:         Johannes Windmiller
 
 Dependencies:   HW dependencies ??, check #include for required libraries
  

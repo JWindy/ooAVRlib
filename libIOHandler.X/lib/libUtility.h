@@ -2,7 +2,7 @@
 Description:    This module contains functions and constants, which are used by 
                 by several other libraries 
   
-Author:         Johannes Windmiler
+Author:         Johannes Windmiller
  
 Dependencies:   none
 
