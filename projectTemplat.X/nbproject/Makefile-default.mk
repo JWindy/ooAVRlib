@@ -116,30 +116,30 @@ endif
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: compileCPP
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-${OBJECTDIR}/projectTemplate.o: projectTemplate.cpp  .generated_files/flags/default/b5029d948cf7f2efd930b295b8a2b7664019552c .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/projectTemplate.o: projectTemplate.cpp  .generated_files/flags/default/bc043b89b684595ac8a29bf8426519f26500634c .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/projectTemplate.o.d 
 	@${RM} ${OBJECTDIR}/projectTemplate.o 
-	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/projectTemplate.o.d" -MT "${OBJECTDIR}/projectTemplate.o.d" -MT ${OBJECTDIR}/projectTemplate.o  -o ${OBJECTDIR}/projectTemplate.o projectTemplate.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/projectTemplate.o.d" -MT "${OBJECTDIR}/projectTemplate.o.d" -MT ${OBJECTDIR}/projectTemplate.o  -o ${OBJECTDIR}/projectTemplate.o projectTemplate.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
-${OBJECTDIR}/projectTemplateTest.o: projectTemplateTest.cpp  .generated_files/flags/default/84df911fefab66085dccc77c043218b7521a355f .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/projectTemplateTest.o: projectTemplateTest.cpp  .generated_files/flags/default/533b744c46787dcc74033fb59272bfa3f0d3aaa3 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/projectTemplateTest.o.d 
 	@${RM} ${OBJECTDIR}/projectTemplateTest.o 
-	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/projectTemplateTest.o.d" -MT "${OBJECTDIR}/projectTemplateTest.o.d" -MT ${OBJECTDIR}/projectTemplateTest.o  -o ${OBJECTDIR}/projectTemplateTest.o projectTemplateTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/projectTemplateTest.o.d" -MT "${OBJECTDIR}/projectTemplateTest.o.d" -MT ${OBJECTDIR}/projectTemplateTest.o  -o ${OBJECTDIR}/projectTemplateTest.o projectTemplateTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
 else
-${OBJECTDIR}/projectTemplate.o: projectTemplate.cpp  .generated_files/flags/default/95ba93d9a937158d57ab2446d8109e5bd04186c4 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/projectTemplate.o: projectTemplate.cpp  .generated_files/flags/default/499dd36f6b786e98dd7a7249241f5e7bacfd0ef5 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/projectTemplate.o.d 
 	@${RM} ${OBJECTDIR}/projectTemplate.o 
-	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/projectTemplate.o.d" -MT "${OBJECTDIR}/projectTemplate.o.d" -MT ${OBJECTDIR}/projectTemplate.o  -o ${OBJECTDIR}/projectTemplate.o projectTemplate.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/projectTemplate.o.d" -MT "${OBJECTDIR}/projectTemplate.o.d" -MT ${OBJECTDIR}/projectTemplate.o  -o ${OBJECTDIR}/projectTemplate.o projectTemplate.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
-${OBJECTDIR}/projectTemplateTest.o: projectTemplateTest.cpp  .generated_files/flags/default/9ab3a8076c32379a1c547e151c7333d155854555 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/projectTemplateTest.o: projectTemplateTest.cpp  .generated_files/flags/default/5d352ccf2b4b68235c4189b590a2ed408a481ca1 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/projectTemplateTest.o.d 
 	@${RM} ${OBJECTDIR}/projectTemplateTest.o 
-	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/projectTemplateTest.o.d" -MT "${OBJECTDIR}/projectTemplateTest.o.d" -MT ${OBJECTDIR}/projectTemplateTest.o  -o ${OBJECTDIR}/projectTemplateTest.o projectTemplateTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/projectTemplateTest.o.d" -MT "${OBJECTDIR}/projectTemplateTest.o.d" -MT ${OBJECTDIR}/projectTemplateTest.o  -o ${OBJECTDIR}/projectTemplateTest.o projectTemplateTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
 endif
 

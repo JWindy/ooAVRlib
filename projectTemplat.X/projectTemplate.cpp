@@ -3,8 +3,12 @@
 
 #include "projectTemplate.h"
 
-void classTemplate::init(void){
+void classTemplate::classTemplate(void){
     #ifndef __AVR_ATtiny85__
         #error "libIOHandler not implemented for selected MUC."
     #endif
+
+    version.major = 0;
+    version.minor = 0;
+    
 }

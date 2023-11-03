@@ -3,13 +3,17 @@ Description:    short description
   
 Author:         Johannes Windmiler
 
-Version:        v<major.minor.build>
+Dependencies:  if any
+ 
+Version:        v<major.minor>
 
-History:        vm.m.b     short description
+History:        vma.mi     short description
 
 Supported MUC:  ATtiny85, ATtiny84, ATmega 168, ATmega328
  
-References:     if there are any
+References:     if any
+
+Comment:        if any
  
 Copyright:      see LICENSE_software.md in git hub root folder
  *--------------------------------------------------------------------*/
@@ -18,12 +22,15 @@ Copyright:      see LICENSE_software.md in git hub root folder
 #define	PROJECTTEMPLATE_H
 
 #include <avr/io.h>
+#include "libUtility.h"
 
 class classTemplate{
     public:
-        void init(void);
+                classTemplate(void);
         
-    private:
+     private: 
+        ver_t   version;
+        
 };
 
 #endif	/* PROJECTTEMPLATE_H */
