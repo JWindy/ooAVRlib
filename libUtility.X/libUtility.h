@@ -30,5 +30,11 @@ struct ver_t{
     uint8_t minor;
 };
 
+enum status_t{
+    idle,
+    bussy,
+    error
+};
+
 #endif	/* LIBUTILITY_H */
 
