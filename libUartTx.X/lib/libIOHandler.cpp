@@ -3,6 +3,15 @@
 
 #include "libIOHandler.h"
 
+libIOHandler::libIOHandler(void){
+    version.major = 0;
+    version.minor = 1;
+}
+
+ver_t libIOHandler::getVersion(void){
+    return version;
+}
+
 void libIOHandler::setPinOutput(uint8_t argPin){
     uint8_t ddrPin = getDdr(argPin);   
     DDRB |= (1 << ddrPin);
@@ -43,7 +52,7 @@ uint8_t libIOHandler::readPinRaw(uint8_t argPin){
     uint8_t pinState = PINB & (1 << argPin);
     return pinState;
 }   
-        
+
 /*
 void configureInterrupt(uint8_t argPin, uint8_t argTriggerType, 
 uint8_t argTriggerState){

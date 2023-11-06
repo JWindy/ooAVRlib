@@ -2,7 +2,7 @@
 Description:    This module contains functions and constants, which are used by 
                 by several other libraries 
   
-Author:         Johannes Windmiler
+Author:         Johannes Windmiller
  
 Dependencies:   none
 
@@ -25,13 +25,16 @@ Copyright:      see LICENSE_software.md in git hub root folder
 
 #include <avr/io.h>
 
-//extern struct ver_t;
-
 struct ver_t{
     uint8_t major;
     uint8_t minor;
 };
 
+enum status_t{
+    IDLE_STATE,
+    BUSSY_STATE,
+    ERROR_STATE
+};
 
 #endif	/* LIBUTILITY_H */
 

@@ -27,17 +27,16 @@
 
 //--------------------------------------------------------------------
 // ToDo: 
-//  - delete this section before final commit
-//  - implement Uart Tx for integers
-//      - check functions of AVR programming book
+//  - implement Singelton
+//  - compare bit bang implementatation to USI implementation
 //  - try to implement Rx with USI as well. Deactivate Rx while sending
 //  - implement for other processor speed -> fix BAUD rate?
 //  - implement interrupt in ioHandler
 //  - extend for Attiny 84
-//  - implement state: bussy, idle, error?
 //  - implement return value, if transmition not possible
 //  - implement tuning algorithm. store OCR0A result in eeprom?
 //  - when to use const arg in function call?
+//  - replace code duplicates for different variable size by template?
 //--------------------------------------------------------------------
 
 #ifndef LIBUARTTX_H
@@ -50,13 +49,7 @@
 #include "libUtility.h"     //v0.1
 #include "libIOHandler.h"   //v0.1
 
-//ToDo: implement libs , USI, Timer? and refer here
-
 #ifndef __AVR_ATtiny85__
-//    #define TX_PORT PORTB
-//    #define TX_DDR  DDRB
-    //#define TX_DDR_PIN DDB0
-//#else
     #error "Library supports ATtiny 85 only, which is not set in project setup."
 #endif
 
@@ -68,37 +61,25 @@ static volatile uint16_t txShiftReg = 0;
 //--------------------------------------------------------------------
 class UartTx{
     public:
-//             UartTx(uint8_t argTxPin);
              UartTx(void);
-        
-//        void uartTxStr(char* argString); //replace by printStr
-        //Description:  transmit a string
         
         void printStr(const char* argString);
         void printStrLn (const char* argString);
+        void printLn(void);
+                
+        void printBinaryByte(uint8_t byte);
         
-        void printUint8(uint8_t argUint8);
-        void printInt8(int8_t argInt8);
-        void printUint16(uint16_t argUint16);
-        void printInt16(int16_t argInt16);
-        
-        //ToDo: implement template to transmit any type of number
-        //any type of number = [int8, uint8, int16, uint16, int32, uint32]
-//        void uartTxInt(uint8_t argInteger);
-        //Description:  transmit a 8 bit integer
-        
-        //ToDo: implement transmition of float as string???
+        void printNum(uint8_t argUint8);
+        void printNum(int8_t argInt8);
+        void printNum(uint16_t argUint16);
+        void printNum(int16_t argInt16);       
         
     private:        
-//        static uint8_t txPin;
-//        uint8_t txDdrPin        = 0;
         ver_t   version;
-//        static uint8_t txPin;
-//        volatile uint16_t tx_shift_reg; 
+        status_t status;
         
-        void uartTxChar(char argCharacter); //replace by transmitByte
         void transmitByte(uint8_t argByte);
-        //Description:  transmit one byte
+        status_t getStatus(void);
 };
 
 #endif	/* LIBUARTTX_H */
