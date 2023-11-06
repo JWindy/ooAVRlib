@@ -33,9 +33,9 @@ const uint8_t BUTTON_PIN      = PB3;
 
 const uint8_t ADC_PIN         = PB4;
 
-const uint8_t UART_Tx_PIN     = PB0;
+const uint8_t UART_Tx_PIN     = PB0;//PB0 on bread board
 
-const uint8_t UART_Rx_PIN     = PB2;
+const uint8_t UART_Rx_PIN     = PB2;//PB2 on bread board
 
 //PB5 reserved for debug wire -> Atmel ICE debugging interface
 
