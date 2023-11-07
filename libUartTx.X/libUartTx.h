@@ -30,7 +30,10 @@
 //--------------------------------------------------------------------
 // ToDo: 
 //  - implement Singelton
-//  - implement tuning algorithm. store OCR0A result in eeprom?
+//  - store OCRA in eeprom?
+//      - define adress
+//      - if value is 0 run the tuning algorithm and use value from source code
+//      - if there is a plausible value, use the value and skipp the tuning algorithm
 //  - when to use const arg in function call?
 //  - implement interrupt in ioHandler
 //  - implement for Timer0 and Timer1? -> libTimer
@@ -67,7 +70,7 @@ static volatile uint16_t txShiftReg = 0;
 //--------------------------------------------------------------------
 class UartTx{
     public:
-             UartTx(uint8_t argOcr0aValue);
+             UartTx(void);
              
         uint8_t getOcr0aValue(void);
         void setOcr0aValue(uint8_t argOcr0aValue);

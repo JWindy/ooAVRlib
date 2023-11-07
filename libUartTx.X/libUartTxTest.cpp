@@ -33,7 +33,7 @@ int main(void){
     
     const uint8_t   ocr0aInitValue  = 103;
     
-    UartTx myUartTx(ocr0aInitValue);
+    UartTx myUartTx;
     
     _delay_ms(3000);
     
