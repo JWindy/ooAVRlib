@@ -4,7 +4,7 @@
 #include "libUartTx.h"
 #include <avr/interrupt.h>
 
-UartTx::UartTx(void){
+UartTx::UartTx(uint8_t argOcr0aValue){
     status = ERROR_STATE;
     libIOHandler myIOHandler;
     
@@ -28,13 +28,22 @@ UartTx::UartTx(void){
     /*NOTE: since the internal 8MHz oscillator is not very accurate, this value can be tuned
       to achieve the desired baud rate, so if it doesn't work with the nominal value (103), try
       increasing or decreasing the value by 1 or 2 */
-    OCR0A = 105;
+    OCR0A = argOcr0aValue;
     
     status = IDLE_STATE;
     
     //enable interrupts
     sei();   
 };
+
+uint8_t UartTx::getOcr0aValue(void){
+    return ocr0aValue;
+}
+
+void UartTx::setOcr0aValue(uint8_t argOcr0aValue){
+    ocr0aValue = argOcr0aValue;
+    OCR0A = ocr0aValue;
+}
 
 status_t UartTx::getStatus(){
     sei();

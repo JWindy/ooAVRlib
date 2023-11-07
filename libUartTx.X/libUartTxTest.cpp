@@ -31,14 +31,32 @@ int main(void){
     const int16_t   testInt16_2     = -32767L;
     const int16_t   testInt16_3     = 32767L;
     
-    UartTx myUartTx;
+    const uint8_t   ocr0aInitValue  = 103;
+    
+    UartTx myUartTx(ocr0aInitValue);
     
     _delay_ms(3000);
     
     myUartTx.printLn();
     myUartTx.printLn();
     myUartTx.printStrLn("New test session started");
-        
+    myUartTx.printLn();
+    
+    myUartTx.printStrLn("Tune timer interrupt");
+    uint8_t i = 5;
+    uint8_t newOcr0aValue = ocr0aInitValue - i/2 -1;
+    while(i--){
+        newOcr0aValue = newOcr0aValue + 1;
+        myUartTx.setOcr0aValue(newOcr0aValue);
+        myUartTx.printStr("This is a test string for OCR0A = ");
+        myUartTx.printNum(newOcr0aValue);
+        myUartTx.printLn();
+        _delay_ms(500);
+    }
+    
+    myUartTx.setOcr0aValue(104);
+    
+    myUartTx.printLn();
     myUartTx.printStrLn("Test printStr");
     myUartTx.printStr(testString);
     myUartTx.printLn();

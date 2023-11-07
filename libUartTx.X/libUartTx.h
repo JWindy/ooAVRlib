@@ -30,12 +30,13 @@
 //--------------------------------------------------------------------
 // ToDo: 
 //  - implement Singelton
-//  - compare bit bang implementatation (hackaday) to USI implementation (make)
 //  - implement tuning algorithm. store OCR0A result in eeprom?
 //  - when to use const arg in function call?
 //  - implement interrupt in ioHandler
 //  - implement for Timer0 and Timer1? -> libTimer
 //  - implement libUSI?
+//  - compare bit bang implementatation (hackaday) to USI implementation (make)
+
 //  Backlog:
 //      - implement for other processor speed -> fix BAUD rate?
 //      - extend for Attiny 84
@@ -66,7 +67,10 @@ static volatile uint16_t txShiftReg = 0;
 //--------------------------------------------------------------------
 class UartTx{
     public:
-             UartTx(void);
+             UartTx(uint8_t argOcr0aValue);
+             
+        uint8_t getOcr0aValue(void);
+        void setOcr0aValue(uint8_t argOcr0aValue);
         
         void printStr(const char* argString);
         void printStrLn (const char* argString);
@@ -116,7 +120,7 @@ class UartTx{
                     if(startTransmission)
                         transmitByte('0' + temp); 
                 }     
-            else if(argNum == -128L){
+            else if(argNum == -128L){//'-' is send futher up the code
                 transmitByte('1');
                 transmitByte('2');
                 transmitByte('8');
@@ -133,6 +137,7 @@ class UartTx{
     private:        
         ver_t   version;
         status_t status;
+        uint8_t ocr0aValue;
         
         void transmitByte(uint8_t argByte);
         status_t getStatus(void);
