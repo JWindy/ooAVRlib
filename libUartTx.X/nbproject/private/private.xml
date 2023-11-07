@@ -5,8 +5,8 @@
         <group>
             <file>file:/home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libUartTx.X/libUartTx.h</file>
             <file>file:/home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libUartTx.X/libUartTxTest.cpp</file>
+            <file>file:/home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libUartTx.X/lib/libUtility.h</file>
             <file>file:/home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libUartTx.X/libUartTx.cpp</file>
-            <file>file:/home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libUartTx.X/ioMapAttiny85DefaultDebuggingBoard.h</file>
         </group>
     </open-files>
 </project-private>

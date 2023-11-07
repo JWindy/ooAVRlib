@@ -1,7 +1,9 @@
 /*--------------------------------------------------------------------
- Description:   Provides a Uart transmition interface based on the 
-                USI interface
-  
+ Description:   Provides a Uart transmition interface implemented in SW only
+                supports 8bit binary, int8, uint8, int16, uint16, string
+                any kind of floating point and 32-bit numbers are not supported
+                Any digital pin can be selected as Tx pin
+ 
  Author:        Johannes Windmiller
  
  Dependencies:  timer0 compare A match interrupt
@@ -10,7 +12,7 @@
  
  History:       v0.1     Initial implementation
  
- Supported MUC: ATtiny85
+ Supported MUC: ATtiny85 @ 8 MHz, 9600 BAUD rate
  
  References:    http://www.technoblogy.com/show?RPY -> Rx? 
                 accessed on 25.10.2023
@@ -28,15 +30,18 @@
 //--------------------------------------------------------------------
 // ToDo: 
 //  - implement Singelton
-//  - compare bit bang implementatation to USI implementation
-//  - try to implement Rx with USI as well. Deactivate Rx while sending
-//  - implement for other processor speed -> fix BAUD rate?
-//  - implement interrupt in ioHandler
-//  - extend for Attiny 84
-//  - implement return value, if transmition not possible
+//  - compare bit bang implementatation (hackaday) to USI implementation (make)
 //  - implement tuning algorithm. store OCR0A result in eeprom?
 //  - when to use const arg in function call?
-//  - replace code duplicates for different variable size by template?
+//  - implement interrupt in ioHandler
+//  - implement for Timer0 and Timer1? -> libTimer
+//  - implement libUSI?
+//  Backlog:
+//      - implement for other processor speed -> fix BAUD rate?
+//      - extend for Attiny 84
+//      - implement return value, if transmition not possible
+//  Rx
+//      - try to implement Tx with USI as well. Deactivate Rx while sending
 //--------------------------------------------------------------------
 
 #ifndef LIBUARTTX_H
@@ -69,10 +74,61 @@ class UartTx{
                 
         void printBinaryByte(uint8_t byte);
         
-        void printNum(uint8_t argUint8);
-        void printNum(int8_t argInt8);
-        void printNum(uint16_t argUint16);
-        void printNum(int16_t argInt16);       
+        //must be implemented in header. Otherwise linker error...
+        template <typename T> void printNum(T argNum){
+            T i = 0;
+            T initValue = 1;
+            T temp = 0;
+            T unsignedValue = argNum;
+            uint8_t shiftValueSign = 0;
+            uint8_t startTransmission = 0;
+            
+            switch(sizeof(argNum)){
+                case 1://1 byte
+                    initValue = 100;
+                    if(argNum < 0)
+                        shiftValueSign = 7;
+                    break;
+                case 2://2 byte
+                    initValue = (T)10000L;
+                    if(argNum < 0)
+                        shiftValueSign = 15;
+                    break;
+        //        default:
+                    //how to handel errors?
+                    //32-bit integer, float, any other complex data type
+                    //break;
+            }
+
+            //convert unsigned to signed
+            if(shiftValueSign){//shiftValueSign == 0 if unsigned
+                if ((unsignedValue & 1 << shiftValueSign) != 0 ){//check if sign is negative
+                    transmitByte('-'); 
+                    //wrong for -128 and -32768 -> exception handeled below
+                    unsignedValue = -unsignedValue;
+                }
+            }
+            if(argNum != -128L && argNum != -32768L)
+                for (i = initValue; i >= 1; i/=10){
+                    temp = (unsignedValue / i) % 10;
+                    if(startTransmission == 0 && temp > 0)//get rid of leading zeros
+                        startTransmission = 1;
+                    if(startTransmission)
+                        transmitByte('0' + temp); 
+                }     
+            else if(argNum == -128L){
+                transmitByte('1');
+                transmitByte('2');
+                transmitByte('8');
+            }
+            else{
+                transmitByte('3');
+                transmitByte('2');
+                transmitByte('7');
+                transmitByte('6');
+                transmitByte('8');
+            }
+        };
         
     private:        
         ver_t   version;

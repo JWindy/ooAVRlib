@@ -48,12 +48,12 @@ status_t UartTx::getStatus(){
             status = IDLE_STATE;
     }
     return status;
-}
+};
 
 void UartTx::transmitByte(uint8_t argByte){
     //wait until transmission is finished
     //this might lead to a crash in the proramm, if for some reason, 
-    //the transmittion is never completed ToDo Timeout?
+    //the transmittion is never completed. ToDo Timeout?
     while(getStatus() == BUSSY_STATE);
 
     //fill the TX shift register witch the character to be sent and the start & stop bits (start bit (1<<0) is already 0)
@@ -74,58 +74,11 @@ void UartTx::printStr(const char* argString){
 void UartTx::printStrLn(const char* argString){
     printStr(argString);
     printLn();
-}
+};
 
 void UartTx::printLn(void){
     printStr("\n\r");
-}
-
-void UartTx::printNum(uint8_t argUint8) {
-  uint8_t i;
-  uint8_t temp;
-  uint8_t startTransmition = 0;
-
-    for (i = 100; i >= 1; i/=10){
-        temp = (argUint8 / i) % 10;
-        if(startTransmition == 0 && temp > 0)//get rid of leading zeros
-            startTransmition = 1;
-        if(startTransmition)
-            transmitByte('0' + temp); 
-    }  
-}
-
-void UartTx::printNum(int8_t argInt8) {
-    uint8_t unsignedValue = argInt8;
-    if ( (unsignedValue & 1 << 7) != 0 ){//check if sign is negative
-//    if((argInt8 >> 7) == 1){//why is this not working?
-        transmitByte('-'); 
-        unsignedValue = ~unsignedValue + 1;//convert int to uint for negative numbers
-    }
-    printNum(unsignedValue);
-}
-
-void UartTx::printNum(uint16_t argUint16) {
-    uint16_t i;
-    uint16_t temp;
-    uint8_t startTransmition = 0;
-
-    for (i = 10000; i >= 1; i/=10){
-        temp = (argUint16 / i) % 10;
-        if(startTransmition == 0 && temp > 0)//get rid of leading zeros
-            startTransmition = 1;
-        if(startTransmition)
-            transmitByte('0' + temp); 
-    }  
-}
-
-void UartTx::printNum(int16_t argInt16) {
-    uint16_t unsignedValue = argInt16;
-    if ((unsignedValue & 1 << 15) != 0 ){//check if sign is negative
-        transmitByte('-'); 
-        unsignedValue = ~unsignedValue + 1;//convert int to uint for negative numbers
-    }
-    printNum(unsignedValue);
-}
+};
 
 void UartTx::printBinaryByte(uint8_t byte) {
  /* Prints out a byte as a series of 1's and 0's */
@@ -136,7 +89,7 @@ void UartTx::printBinaryByte(uint8_t byte) {
     else
       transmitByte('0');
   }
-}
+};
 
 //timer0 compare A match interrupt
 ISR(TIM0_COMPA_vect )
@@ -161,4 +114,4 @@ ISR(TIM0_COMPA_vect )
       TCCR0B = 0;
       TCNT0 = 0;
    }
-}
+};

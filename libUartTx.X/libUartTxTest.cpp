@@ -23,11 +23,13 @@ int main(void){
     const uint8_t   binaryByte      = 0b10101010;   
     const uint8_t   testUint8       = 10;
     const uint8_t   testUint8_2     = 255;
-    const int8_t    testInt8        = -123;
-    const int8_t    testInt8_2      = 123;
-    const uint16_t  testUint16      = 3000UL;
-    const int16_t   testInt16       = -300L;
-    const int16_t   testInt16_2     = 30L;
+    const int8_t    testInt8        = -128;
+    const int8_t    testInt8_2      = -127;
+    const int8_t    testInt8_3      = 127;
+    const uint16_t  testUint16      = 65535UL;
+    const int16_t   testInt16       = -32768L;
+    const int16_t   testInt16_2     = -32767L;
+    const int16_t   testInt16_3     = 32767L;
     
     UartTx myUartTx;
     
@@ -36,58 +38,64 @@ int main(void){
     myUartTx.printLn();
     myUartTx.printLn();
     myUartTx.printStrLn("New test session started");
-    
-    while(1){
         
-        myUartTx.printStrLn("Test printStr");
-        myUartTx.printStr(testString);
-        myUartTx.printLn();
-        myUartTx.printStrLn("printStrLn");
-        myUartTx.printStrLn(testNewLine);
-        _delay_ms(100);
+    myUartTx.printStrLn("Test printStr");
+    myUartTx.printStr(testString);
+    myUartTx.printLn();
+    myUartTx.printStrLn("printStrLn");
+    myUartTx.printStrLn(testNewLine);
+    _delay_ms(100);
 
-        myUartTx.printStrLn("printBinaryByte");
-        myUartTx.printBinaryByte(binaryByte);
-        myUartTx.printLn();
-        _delay_ms(100);
-        
-        myUartTx.printStrLn("Test printNum(uint8_t)");
-        myUartTx.printNum(testUint8);
-        myUartTx.printLn();
-        _delay_ms(100);
-        
-        myUartTx.printNum(testUint8_2);
-        myUartTx.printLn();
-        _delay_ms(100);
-        
-        myUartTx.printStrLn("Test printNum(int8_t)");
-        myUartTx.printNum(testInt8);
-        myUartTx.printLn();
-        _delay_ms(100);
-        
-        myUartTx.printNum(testInt8_2);
-        myUartTx.printLn();
-        _delay_ms(100);
-        
-        myUartTx.printStrLn("Test printNum(uint16_t)");
-        myUartTx.printNum(testUint16);
-        myUartTx.printLn();
-        _delay_ms(100);
-        
-        myUartTx.printStrLn("Test printNum(int16_t)");
-        myUartTx.printNum(testInt16);
-        myUartTx.printLn();
-        _delay_ms(100);
-        myUartTx.printNum(testInt16_2);
-        myUartTx.printLn();
-        _delay_ms(100);
-        
-        myUartTx.printLn();
-        myUartTx.printStrLn("Test completed");
-        myUartTx.printStrLn("-----------------------------------");
-        myUartTx.printLn();
-        
-        _delay_ms(2000);    
-    }
+    myUartTx.printStrLn("printBinaryByte");
+    myUartTx.printBinaryByte(binaryByte);
+    myUartTx.printLn();
+    _delay_ms(100);
+
+    myUartTx.printStrLn("Test printNum(uint8_t)");
+    myUartTx.printNum(testUint8);
+    myUartTx.printLn();
+    _delay_ms(100);
+
+    myUartTx.printNum(testUint8_2);
+    myUartTx.printLn();
+    _delay_ms(100);
+
+    myUartTx.printStrLn("Test printNum(int8_t)");
+    myUartTx.printNum(testInt8);
+    myUartTx.printLn();
+    _delay_ms(100);
+
+    myUartTx.printNum(testInt8_2);
+    myUartTx.printLn();
+    _delay_ms(100);
+
+    myUartTx.printNum(testInt8_3);
+    myUartTx.printLn();
+    _delay_ms(100);
+    
+    myUartTx.printStrLn("Test printNum(uint16_t)");
+    myUartTx.printNum(testUint16);
+    myUartTx.printLn();
+    _delay_ms(100);
+
+    myUartTx.printStrLn("Test printNum(int16_t)");
+    myUartTx.printNum(testInt16);
+    myUartTx.printLn();
+    _delay_ms(100);
+    myUartTx.printNum(testInt16_2);
+    myUartTx.printLn();
+    _delay_ms(100);
+    myUartTx.printNum(testInt16_3);
+    myUartTx.printLn();
+    _delay_ms(100);
+
+    
+    myUartTx.printLn();
+    myUartTx.printStrLn("Test completed");
+    myUartTx.printStrLn("-----------------------------------");
+    myUartTx.printLn();
+
+    _delay_ms(2000);    
+
     return 0;
 }
