@@ -3,8 +3,11 @@
 
 #include "libUartTx.h"
 #include <avr/interrupt.h>
+#include <stdlib.h> //for malloc()
 
-UartTx::UartTx(void){
+UartTx* UartTx::mInstance = 0; //global declaration of static private variable
+
+void UartTx::init(void){
     status = ERROR_STATE;
     libIOHandler myIOHandler;
     
@@ -36,6 +39,15 @@ UartTx::UartTx(void){
     //enable interrupts
     sei();   
 };
+
+UartTx* UartTx::getInstance(void){
+   if (mInstance == 0){
+       mInstance = (UartTx*)malloc(sizeof(UartTx));
+       mInstance->init();
+//       Init();
+   }
+   return mInstance;
+}
 
 uint8_t UartTx::getOcr0aValue(void){
     return ocr0aValue;

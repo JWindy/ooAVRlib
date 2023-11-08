@@ -33,85 +33,87 @@ int main(void){
     
     const uint8_t   ocr0aInitValue  = 103;
     
-    UartTx myUartTx;
+//    UartTx myUartTx;
+    UartTx* myUartTx = UartTx::getInstance();
+//    myUartTx->init();
     
     _delay_ms(3000);
     
-    myUartTx.printLn();
-    myUartTx.printLn();
-    myUartTx.printStrLn("New test session started");
-    myUartTx.printLn();
+    myUartTx->printLn();
+    myUartTx->printLn();
+    myUartTx->printStrLn("New test session started");
+    myUartTx->printLn();
     
-    myUartTx.printStrLn("Tune timer interrupt");
+    myUartTx->printStrLn("Tune timer interrupt");
     uint8_t i = 5;
     uint8_t newOcr0aValue = ocr0aInitValue - i/2 -1;
     while(i--){
         newOcr0aValue = newOcr0aValue + 1;
-        myUartTx.setOcr0aValue(newOcr0aValue);
-        myUartTx.printStr("This is a test string for OCR0A = ");
-        myUartTx.printNum(newOcr0aValue);
-        myUartTx.printLn();
+        myUartTx->setOcr0aValue(newOcr0aValue);
+        myUartTx->printStr("This is a test string for OCR0A = ");
+        myUartTx->printNum(newOcr0aValue);
+        myUartTx->printLn();
         _delay_ms(500);
     }
     
-    myUartTx.setOcr0aValue(104);
+    myUartTx->setOcr0aValue(104);
     
-    myUartTx.printLn();
-    myUartTx.printStrLn("Test printStr");
-    myUartTx.printStr(testString);
-    myUartTx.printLn();
-    myUartTx.printStrLn("printStrLn");
-    myUartTx.printStrLn(testNewLine);
+    myUartTx->printLn();
+    myUartTx->printStrLn("Test printStr");
+    myUartTx->printStr(testString);
+    myUartTx->printLn();
+    myUartTx->printStrLn("printStrLn");
+    myUartTx->printStrLn(testNewLine);
     _delay_ms(100);
 
-    myUartTx.printStrLn("printBinaryByte");
-    myUartTx.printBinaryByte(binaryByte);
-    myUartTx.printLn();
+    myUartTx->printStrLn("printBinaryByte");
+    myUartTx->printBinaryByte(binaryByte);
+    myUartTx->printLn();
     _delay_ms(100);
 
-    myUartTx.printStrLn("Test printNum(uint8_t)");
-    myUartTx.printNum(testUint8);
-    myUartTx.printLn();
+    myUartTx->printStrLn("Test printNum(uint8_t)");
+    myUartTx->printNum(testUint8);
+    myUartTx->printLn();
     _delay_ms(100);
 
-    myUartTx.printNum(testUint8_2);
-    myUartTx.printLn();
+    myUartTx->printNum(testUint8_2);
+    myUartTx->printLn();
     _delay_ms(100);
 
-    myUartTx.printStrLn("Test printNum(int8_t)");
-    myUartTx.printNum(testInt8);
-    myUartTx.printLn();
+    myUartTx->printStrLn("Test printNum(int8_t)");
+    myUartTx->printNum(testInt8);
+    myUartTx->printLn();
     _delay_ms(100);
 
-    myUartTx.printNum(testInt8_2);
-    myUartTx.printLn();
+    myUartTx->printNum(testInt8_2);
+    myUartTx->printLn();
     _delay_ms(100);
 
-    myUartTx.printNum(testInt8_3);
-    myUartTx.printLn();
+    myUartTx->printNum(testInt8_3);
+    myUartTx->printLn();
     _delay_ms(100);
     
-    myUartTx.printStrLn("Test printNum(uint16_t)");
-    myUartTx.printNum(testUint16);
-    myUartTx.printLn();
+    myUartTx->printStrLn("Test printNum(uint16_t)");
+    myUartTx->printNum(testUint16);
+    myUartTx->printLn();
     _delay_ms(100);
 
-    myUartTx.printStrLn("Test printNum(int16_t)");
-    myUartTx.printNum(testInt16);
-    myUartTx.printLn();
+    myUartTx->printStrLn("Test printNum(int16_t)");
+    myUartTx->printNum(testInt16);
+    myUartTx->printLn();
     _delay_ms(100);
-    myUartTx.printNum(testInt16_2);
-    myUartTx.printLn();
+    myUartTx->printNum(testInt16_2);
+    myUartTx->printLn();
     _delay_ms(100);
-    myUartTx.printNum(testInt16_3);
-    myUartTx.printLn();
+    myUartTx->printNum(testInt16_3);
+    myUartTx->printLn();
     _delay_ms(100);
 
     
-    myUartTx.printLn();
-    myUartTx.printStrLn("Test completed");
-    myUartTx.printStrLn("-----------------------------------");
-    myUartTx.printLn();
+    myUartTx->printLn();
+    myUartTx->printStrLn("Test completed");
+    myUartTx->printStrLn("-----------------------------------");
+    myUartTx->printLn();
 
     _delay_ms(2000);    
 

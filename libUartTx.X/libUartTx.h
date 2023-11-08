@@ -1,12 +1,16 @@
 /*--------------------------------------------------------------------
  Description:   Provides a Uart transmition interface implemented in SW only
-                supports 8bit binary, int8, uint8, int16, uint16, string
-                any kind of floating point and 32-bit numbers are not supported
+                Implemented as singelton -> there can only be one instance of 
+                    the class. If created again, the adress of the existing 
+                    object is returned.
+                Supports 8bit binary, int8, uint8, int16, uint16, string
+                Any kind of floating point and 32-bit numbers are not supported
                 Any digital pin can be selected as Tx pin
+                While sending data, the library blocks the CPU. Keep strings short!
  
  Author:        Johannes Windmiller
  
- Dependencies:  timer0 compare A match interrupt
+ Dependencies:  timer0 compare A match interrupt, UART to USB adapter
  
  Version:       v0.1
  
@@ -28,25 +32,28 @@
  *--------------------------------------------------------------------*/
 
 //--------------------------------------------------------------------
-// ToDo: 
-//  - implement Singelton
-//  - store OCRA in eeprom?
-//      - define adress
-//      - if value is 0 run the tuning algorithm and use value from source code
-//      - if there is a plausible value, use the value and skipp the tuning algorithm
+/* ToDo: 
 //  - when to use const arg in function call?
 //  - implement interrupt in ioHandler
 //  - implement for Timer0 and Timer1? -> libTimer
-//  - implement libUSI?
+//  - store OCRA in eeprom?
+//      - define adress
+//      - if value is 0 run the tuning algorithm and use value from source code
+//      - if there is a plausible value, use the value and skip the tuning algorithm
+//  - implement UartTxRx
 //  - compare bit bang implementatation (hackaday) to USI implementation (make)
+//  - can UartTx implemented based on bit bang and USI in one class? maybe abstract libUartTx
+//      and lower level libUSI and libBitBangUartTx? 
+//      What is the advantage of USI over bitbang? Compare size of static compiled library
+//  - implement libUSI?
 
 //  Backlog:
 //      - implement for other processor speed -> fix BAUD rate?
 //      - extend for Attiny 84
-//      - implement return value, if transmition not possible
+//      - implement return value, if device bussy and several clients have access to the services
 //  Rx
 //      - try to implement Tx with USI as well. Deactivate Rx while sending
-//--------------------------------------------------------------------
+//--------------------------------------------------------------------*/
 
 #ifndef LIBUARTTX_H
 #define	LIBUARTTX_H
@@ -70,16 +77,17 @@ static volatile uint16_t txShiftReg = 0;
 //--------------------------------------------------------------------
 class UartTx{
     public:
-             UartTx(void);
-             
-        uint8_t getOcr0aValue(void);
-        void setOcr0aValue(uint8_t argOcr0aValue);
+        static UartTx* getInstance(void);  
+        void init(void);
         
-        void printStr(const char* argString);
-        void printStrLn (const char* argString);
-        void printLn(void);
+        uint8_t getOcr0aValue(void);
+        void    setOcr0aValue(uint8_t argOcr0aValue);
+        
+        void    printStr(const char* argString);
+        void    printStrLn (const char* argString);
+        void    printLn(void);
                 
-        void printBinaryByte(uint8_t byte);
+        void    printBinaryByte(uint8_t byte);
         
         //must be implemented in header. Otherwise linker error...
         template <typename T> void printNum(T argNum){
@@ -136,11 +144,19 @@ class UartTx{
                 transmitByte('8');
             }
         };
+       
+    protected:
+        //implemented as singelton -> hidden constructor
+        //can only be called by class itself
+        UartTx(void);
         
     private:        
         ver_t   version;
         status_t status;
         uint8_t ocr0aValue;
+        static UartTx *mInstance;
+        
+        void Init(void);
         
         void transmitByte(uint8_t argByte);
         status_t getStatus(void);
