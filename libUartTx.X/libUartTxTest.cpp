@@ -33,9 +33,8 @@ int main(void){
     
     const uint8_t   ocr0aInitValue  = 103;
     
-//    UartTx myUartTx;
     UartTx* myUartTx = UartTx::getInstance();
-//    myUartTx->init();
+    UartTx* myUartTx2 = UartTx::getInstance();
     
     _delay_ms(3000);
     
@@ -108,7 +107,9 @@ int main(void){
     myUartTx->printNum(testInt16_3);
     myUartTx->printLn();
     _delay_ms(100);
-
+    
+    myUartTx2->printStrLn("Send by '2nd' instance ");
+    _delay_ms(100);
     
     myUartTx->printLn();
     myUartTx->printStrLn("Test completed");

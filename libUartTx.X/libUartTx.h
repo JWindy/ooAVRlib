@@ -33,8 +33,6 @@
 
 //--------------------------------------------------------------------
 /* ToDo: 
-//  - when to use const arg in function call?
-//  - implement interrupt in ioHandler
 //  - implement for Timer0 and Timer1? -> libTimer
 //  - store OCRA in eeprom?
 //      - define adress
@@ -50,7 +48,7 @@
 //  Backlog:
 //      - implement for other processor speed -> fix BAUD rate?
 //      - extend for Attiny 84
-//      - implement return value, if device bussy and several clients have access to the services
+//      - implement return value, if device bussy and several users have access to the services
 //  Rx
 //      - try to implement Tx with USI as well. Deactivate Rx while sending
 //--------------------------------------------------------------------*/
@@ -78,16 +76,15 @@ static volatile uint16_t txShiftReg = 0;
 class UartTx{
     public:
         static UartTx* getInstance(void);  
-        void init(void);
         
-        uint8_t getOcr0aValue(void);
+        
         void    setOcr0aValue(uint8_t argOcr0aValue);
         
         void    printStr(const char* argString);
         void    printStrLn (const char* argString);
         void    printLn(void);
                 
-        void    printBinaryByte(uint8_t byte);
+        void    printBinaryByte(uint8_t argByte);
         
         //must be implemented in header. Otherwise linker error...
         template <typename T> void printNum(T argNum){
@@ -154,9 +151,7 @@ class UartTx{
         ver_t   version;
         status_t status;
         uint8_t ocr0aValue;
-        static UartTx *mInstance;
-        
-        void Init(void);
+        static UartTx pInstance;
         
         void transmitByte(uint8_t argByte);
         status_t getStatus(void);

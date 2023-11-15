@@ -3,11 +3,10 @@
 
 #include "libUartTx.h"
 #include <avr/interrupt.h>
-#include <stdlib.h> //for malloc()
 
-UartTx* UartTx::mInstance = 0; //global declaration of static private variable
+UartTx UartTx::pInstance = UartTx();//global declaration of static private variable
 
-void UartTx::init(void){
+UartTx::UartTx(void){
     status = ERROR_STATE;
     libIOHandler myIOHandler;
     
@@ -41,16 +40,7 @@ void UartTx::init(void){
 };
 
 UartTx* UartTx::getInstance(void){
-   if (mInstance == 0){
-       mInstance = (UartTx*)malloc(sizeof(UartTx));
-       mInstance->init();
-//       Init();
-   }
-   return mInstance;
-}
-
-uint8_t UartTx::getOcr0aValue(void){
-    return ocr0aValue;
+   return &pInstance;
 }
 
 void UartTx::setOcr0aValue(uint8_t argOcr0aValue){
@@ -102,11 +92,11 @@ void UartTx::printLn(void){
     printStr("\n\r");
 };
 
-void UartTx::printBinaryByte(uint8_t byte) {
+void UartTx::printBinaryByte(uint8_t argByte) {
  /* Prints out a byte as a series of 1's and 0's */
   uint8_t bit;
   for (bit = 7; bit < 255; bit--) {
-    if (bit_is_set(byte, bit))
+    if (bit_is_set(argByte, bit))
       transmitByte('1');
     else
       transmitByte('0');
