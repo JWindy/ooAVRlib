@@ -11,7 +11,7 @@ For every library, you'll find the following folders:
 - lib -> If other libraries are required for running the library, the corresponding files are copied here.
 - libXX.cpp -> source file
 - libXX.h -> header file
-- libXXTest.cpp -> test file
+- libXXTest.cpp -> test file. The test file shows how to use each function, together with the information in the hardware folder, this should be sufficient documentation to get started:D
 
 # Microcontrollers
 For now, the libraries will be implemented for ATtiny 85. I plan on supporting ATtiny 84 and ATmega 328 in the future.
