@@ -6,9 +6,9 @@
  
  Dependencies:  none
  
- Version:       v0.0.1
+ Version:       v0.1
  
- History:       v0.0.1     Initial implementation
+ History:       v0.1     Initial implementation
  
  Supported MUC: ATtiny85
  
@@ -33,9 +33,9 @@ const uint8_t BUTTON_PIN      = PB3;
 
 const uint8_t ADC_PIN         = PB4;
 
-const uint8_t UART_Tx_PIN     = PB0;
+const uint8_t UART_Tx_PIN     = PB2;
 
-const uint8_t UART_Rx_PIN     = PB2;
+const uint8_t UART_Rx_PIN     = PB0;
 
 //PB5 reserved for debug wire -> Atmel ICE debugging interface
 

@@ -77,7 +77,6 @@ class UartTx{
     public:
         static UartTx* getInstance(void);  
         
-        
         void    setOcr0aValue(uint8_t argOcr0aValue);
         
         void    printStr(const char* argString);
