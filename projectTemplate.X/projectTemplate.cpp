@@ -2,6 +2,8 @@
 // copyright applies according to LICENSE_software.md in GitHub root folder
 
 #include "projectTemplate.h"
+//#include <avr/interrupt.h>
+//#include <stdlib.h> //for malloc()
 
 void classTemplate::classTemplate(void){
     #ifndef __AVR_ATtiny85__

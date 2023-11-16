@@ -15,14 +15,17 @@ References:     if any
 
 Comment:        if any
  
-Copyright:      see LICENSE_software.md in git hub root folder
+Copyright:      see LICENSE_software.md in GitHub root folder
  *--------------------------------------------------------------------*/
 
 #ifndef PROJECTTEMPLATE_H
 #define	PROJECTTEMPLATE_H
 
 #include <avr/io.h>
-#include "libUtility.h"	//v0.1
+//#include "libUtility.h"     //v0.2
+//#include "libTimer.h"       //v0.2
+//#include "libIoHandler.h"   //v0.1
+//#include "libUartTx.h"      //v0.1
 
 class classTemplate{
     public:
