@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=libTimer.cpp libTimerTest.cpp lib/libUtility.cpp
+SOURCEFILES_QUOTED_IF_SPACED=libTimer.cpp libTimerTest.cpp lib/libUtility.cpp lib/libIOHandler.cpp
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/libTimer.o ${OBJECTDIR}/libTimerTest.o ${OBJECTDIR}/lib/libUtility.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/libTimer.o.d ${OBJECTDIR}/libTimerTest.o.d ${OBJECTDIR}/lib/libUtility.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/libTimer.o ${OBJECTDIR}/libTimerTest.o ${OBJECTDIR}/lib/libUtility.o ${OBJECTDIR}/lib/libIOHandler.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/libTimer.o.d ${OBJECTDIR}/libTimerTest.o.d ${OBJECTDIR}/lib/libUtility.o.d ${OBJECTDIR}/lib/libIOHandler.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/libTimer.o ${OBJECTDIR}/libTimerTest.o ${OBJECTDIR}/lib/libUtility.o
+OBJECTFILES=${OBJECTDIR}/libTimer.o ${OBJECTDIR}/libTimerTest.o ${OBJECTDIR}/lib/libUtility.o ${OBJECTDIR}/lib/libIOHandler.o
 
 # Source Files
-SOURCEFILES=libTimer.cpp libTimerTest.cpp lib/libUtility.cpp
+SOURCEFILES=libTimer.cpp libTimerTest.cpp lib/libUtility.cpp lib/libIOHandler.cpp
 
 # Pack Options 
 PACK_COMPILER_OPTIONS=-I "${DFP_DIR}/include"
@@ -134,6 +134,12 @@ ${OBJECTDIR}/lib/libUtility.o: lib/libUtility.cpp  .generated_files/flags/defaul
 	@${RM} ${OBJECTDIR}/lib/libUtility.o 
 	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/lib/libUtility.o.d" -MT "${OBJECTDIR}/lib/libUtility.o.d" -MT ${OBJECTDIR}/lib/libUtility.o  -o ${OBJECTDIR}/lib/libUtility.o lib/libUtility.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
+${OBJECTDIR}/lib/libIOHandler.o: lib/libIOHandler.cpp  .generated_files/flags/default/536b5f81386db5f12d4a69e59f92cfc992c65c9b .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+	@${MKDIR} "${OBJECTDIR}/lib" 
+	@${RM} ${OBJECTDIR}/lib/libIOHandler.o.d 
+	@${RM} ${OBJECTDIR}/lib/libIOHandler.o 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/lib/libIOHandler.o.d" -MT "${OBJECTDIR}/lib/libIOHandler.o.d" -MT ${OBJECTDIR}/lib/libIOHandler.o  -o ${OBJECTDIR}/lib/libIOHandler.o lib/libIOHandler.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	
 else
 ${OBJECTDIR}/libTimer.o: libTimer.cpp  .generated_files/flags/default/300a85b6671adb9a35d1d53da2764a2ca1b9e16b .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
@@ -152,6 +158,12 @@ ${OBJECTDIR}/lib/libUtility.o: lib/libUtility.cpp  .generated_files/flags/defaul
 	@${RM} ${OBJECTDIR}/lib/libUtility.o.d 
 	@${RM} ${OBJECTDIR}/lib/libUtility.o 
 	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/lib/libUtility.o.d" -MT "${OBJECTDIR}/lib/libUtility.o.d" -MT ${OBJECTDIR}/lib/libUtility.o  -o ${OBJECTDIR}/lib/libUtility.o lib/libUtility.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	
+${OBJECTDIR}/lib/libIOHandler.o: lib/libIOHandler.cpp  .generated_files/flags/default/e38c5339ce182324d2f94f25a0d5014c4c47218b .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+	@${MKDIR} "${OBJECTDIR}/lib" 
+	@${RM} ${OBJECTDIR}/lib/libIOHandler.o.d 
+	@${RM} ${OBJECTDIR}/lib/libIOHandler.o 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/lib/libIOHandler.o.d" -MT "${OBJECTDIR}/lib/libIOHandler.o.d" -MT ${OBJECTDIR}/lib/libIOHandler.o  -o ${OBJECTDIR}/lib/libIOHandler.o lib/libIOHandler.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
 endif
 

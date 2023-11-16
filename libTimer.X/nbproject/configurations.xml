@@ -7,6 +7,7 @@
       <itemPath>libTimer.h</itemPath>
       <itemPath>ioMapAttiny85DefaultDebuggingBoard.h</itemPath>
       <itemPath>lib/libUtility.h</itemPath>
+      <itemPath>lib/libIOHandler.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -18,6 +19,7 @@
       <itemPath>libTimer.cpp</itemPath>
       <itemPath>libTimerTest.cpp</itemPath>
       <itemPath>lib/libUtility.cpp</itemPath>
+      <itemPath>lib/libIOHandler.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -36,7 +38,7 @@
         <targetDevice>ATtiny85</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>noID</platformTool>
+        <platformTool>AtmelIceTool</platformTool>
         <languageToolchain>AVR</languageToolchain>
         <languageToolchainVersion>1.00</languageToolchainVersion>
         <platform>2</platform>

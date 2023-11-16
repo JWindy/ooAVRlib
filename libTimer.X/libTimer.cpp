@@ -3,9 +3,11 @@
 
 #include "libTimer.h"
 //#include <avr/interrupt.h>
-#include <stdlib.h> //for malloc()
+//#include <stdlib.h> //for malloc()
 
-Timer0Attiny85 Timer0Attiny85::pInstance = Timer0Attiny85(); //global declaration of static private variable
+//global declaration of static private members
+Timer0Attiny85 Timer0Attiny85::pInstance = Timer0Attiny85();
+Semaphore Timer::pSemaphore = Semaphore(1); //initialised as mutex
 
 //void Timer::init(void){
 //    #ifndef __AVR_ATtiny85__
@@ -35,7 +37,7 @@ Timer::Timer(void) {
 
     timerState = INIT_STATE;
 
-    *pSemaphore = Semaphore(1); //initialised as mutex
+    //    *pSemaphore = Semaphore(1); //initialised as mutex
 
 };
 //------------------------------------------------------------------
@@ -62,25 +64,33 @@ Timer0Attiny85* Timer0Attiny85::getInstance(void) {
 }
 
 void Timer0Attiny85::setPrescaler(uint8_t argSemaphoreKey, clockPrescaler_t argPrescaler) {
-    if (pSemaphore->checkKey(argSemaphoreKey)) {
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
         prescaler = argPrescaler;
+        if(timerState == BUSSY_STATE){//update register only, when allready running. Otherwise timer will be started
+            setPrescalerRegister();
+        }
     }
 }
 
 void Timer0Attiny85::setOutputCompareMatchValue(uint8_t argSemaphoreKey, uint8_t argOcrValue) {
-    if (pSemaphore->checkKey(argSemaphoreKey)) {
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
         outputCompareMatchValue = argOcrValue;
+        OCR0A = outputCompareMatchValue;
     }
 }
 
 void Timer0Attiny85::setDutyCycle(uint8_t argSemaphoreKey, uint8_t argDutyCycle) {
-    if (pSemaphore->checkKey(argSemaphoreKey)) {
-        dutyCycle = argDutyCycle;
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (argDutyCycle > 100)
+            dutyCycle = 100;
+        else
+            dutyCycle = argDutyCycle;
     }
+    //ToDo: update duty cycle in register
 }
 
 void Timer0Attiny85::configTimer(uint8_t argSemaphoreKey) {
-    if (pSemaphore->checkKey(argSemaphoreKey)) {
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
         if (timerState == BUSSY_STATE) {
             stop(argSemaphoreKey);
             reset(argSemaphoreKey);
@@ -104,7 +114,7 @@ void Timer0Attiny85::configTimer(uint8_t argSemaphoreKey) {
 }
 
 void Timer0Attiny85::configPwm(uint8_t argSemaphoreKey) {
-    if (pSemaphore->checkKey(argSemaphoreKey)) {
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
         if (timerState == BUSSY_STATE) {
             stop(argSemaphoreKey);
             reset(argSemaphoreKey);
@@ -159,15 +169,16 @@ void Timer0Attiny85::setPrescalerRegister(void) {
 }
 
 void Timer0Attiny85::start(uint8_t argSemaphoreKey) {
-    if (pSemaphore->checkKey(argSemaphoreKey)) {
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
         timerState = BUSSY_STATE;
+        reset(argSemaphoreKey);
         setPrescalerRegister();
     }
 }
 
 void Timer0Attiny85::stop(uint8_t argSemaphoreKey) {
     //data sheet p 80
-    if (pSemaphore->checkKey(argSemaphoreKey)) {
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
         timerState = IDLE_STATE;
         TCCR0B &= ~(1 << CS02);
         TCCR0B &= ~(1 << CS01);
@@ -176,18 +187,20 @@ void Timer0Attiny85::stop(uint8_t argSemaphoreKey) {
 }
 
 void Timer0Attiny85::reset(uint8_t argSemaphoreKey) {
-    if (pSemaphore->checkKey(argSemaphoreKey))
+    if (pSemaphore.checkKey(argSemaphoreKey))
         TCNT0 = 0x00; //reset counter register data sheet p 80
 }
 
 void Timer0Attiny85::cleanup(uint8_t argSemaphoreKey) {
-    stop(argSemaphoreKey);
-    reset(argSemaphoreKey);
-    TCCR0A = 0x00; //reset timer control register data sheet p 80
-    TCCR0B = 0x00;
-    TIMSK &= ~(1 << OCIE1A); //reset interrupt mask register data sheet p 81
-    TIMSK &= ~(1 << OCIE1B);
-    TIMSK &= ~(1 << TOIE0);
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
+        stop(argSemaphoreKey);
+        reset(argSemaphoreKey);
+        TCCR0A = 0x00; //reset timer control register data sheet p 80
+        TCCR0B = 0x00;
+        TIMSK &= ~(1 << OCIE1A); //reset interrupt mask register data sheet p 81
+        TIMSK &= ~(1 << OCIE1B);
+        TIMSK &= ~(1 << TOIE0);
+    }
 }
 
 
@@ -215,6 +228,7 @@ void Timer0Attiny85::cleanup(uint8_t argSemaphoreKey) {
 
 //the following line prevents a linker error
 //"undefined reference to `__cxa_pure_virtual'"
+
 extern "C" void __cxa_pure_virtual() {
     while (1);
 }

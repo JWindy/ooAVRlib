@@ -43,26 +43,22 @@ class Semaphore{
     //to many users. For argS == 1 -> mutex -> only one user can access the 
     //ressouce/object
     public:
-//        void            init(uint8_t argS);
-                        Semaphore(uint8_t argS);
-                        Semaphore(void);
-        //if the resourece is available upon request, lock() returns a key, which is 
+        //ArgMaxNumberOfUser defines the number of users, which can access the protected resource/class
+                        Semaphore(uint8_t argMaxNumberOfUser);
+        //If the resourece is available upon request, lock() returns a key, which is 
         //required to unlock the resource -> argKey. 
         uint8_t         lock(void);
         //If the ressource can be unlocked (ressource locked and key correct), 
         //unlock returns 0, otherwise it returns argKey
         uint8_t         unlock(uint8_t argKey);
-        //any critical operation of the ressource/object can be guarded by 
+        //Any critical operation of the ressource/object can be guarded by 
         //checking the key of the user -> returns 1, if the key is correct, 
         //otherwise returns 0
         uint8_t         checkKey(uint8_t argKey);
         
     private:
-        uint8_t         s;
-        uint8_t         maxS;
-        
+        uint8_t         userCount;
+        uint8_t         maxNumberOfUser;
 };
-
-
 #endif	/* LIBUTILITY_H */
 
