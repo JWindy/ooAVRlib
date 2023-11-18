@@ -9,27 +9,9 @@
 Timer0Attiny85 Timer0Attiny85::pInstance = Timer0Attiny85();
 Semaphore Timer::pSemaphore = Semaphore(1); //initialised as mutex
 
-//void Timer::init(void){
-//    #ifndef __AVR_ATtiny85__
-//        #error "libIOHandler not implemented for selected MUC."
-//    #endif
-//
-//    version.major = 0;
-//    version.minor = 1;
-//    
-//}
-
 //------------------------------------------------------------------
 // class Timer operations
 //------------------------------------------------------------------
-//Timer* Timer::getInstance(void){
-//   if (pInstance == 0){
-//       pInstance = (Timer*)malloc(sizeof(Timer));
-//       pInstance->init();
-//   }
-//   return pInstance;
-//}
-//Timer::Timer(void): Semaphore(1){
 
 Timer::Timer(void) {
     version.major = 0;
@@ -37,28 +19,28 @@ Timer::Timer(void) {
 
     timerState = INIT_STATE;
 
-    //    *pSemaphore = Semaphore(1); //initialised as mutex
-
 };
+
 //------------------------------------------------------------------
 // class TimerAttiny85 operations
 //------------------------------------------------------------------
 
 TimerAttiny85::TimerAttiny85(void) : Timer() {
 };
+
 //------------------------------------------------------------------
 // class Timer0Attiny85 operations
 //------------------------------------------------------------------
 
 Timer0Attiny85::Timer0Attiny85(void) : TimerAttiny85() {
-    prescaler = PRESCALER1; // see ATiny85 data sheet p80
+    prescaler = PRESCALER1024; // see ATiny85 data sheet p80
     outputCompareMatchValue = 255; //OCR0A data sheet p80
     dutyCycle = 100; //in %
 };
 
 Timer0Attiny85* Timer0Attiny85::getInstance(void) {
 #ifndef __AVR_ATtiny85__
-#error "libIOHandler not implemented for selected MUC."
+#error "libTimer not implemented for selected MUC."
 #endif
     return &pInstance;
 }
@@ -66,7 +48,7 @@ Timer0Attiny85* Timer0Attiny85::getInstance(void) {
 void Timer0Attiny85::setPrescaler(uint8_t argSemaphoreKey, clockPrescaler_t argPrescaler) {
     if (pSemaphore.checkKey(argSemaphoreKey)) {
         prescaler = argPrescaler;
-        if(timerState == BUSSY_STATE){//update register only, when allready running. Otherwise timer will be started
+        if (timerState == BUSSY_STATE) {//update register only, when allready running. Otherwise timer will be started
             setPrescalerRegister();
         }
     }
@@ -79,61 +61,95 @@ void Timer0Attiny85::setOutputCompareMatchValue(uint8_t argSemaphoreKey, uint8_t
     }
 }
 
-void Timer0Attiny85::setDutyCycle(uint8_t argSemaphoreKey, uint8_t argDutyCycle) {
-    if (pSemaphore.checkKey(argSemaphoreKey)) {
-        if (argDutyCycle > 100)
-            dutyCycle = 100;
-        else
-            dutyCycle = argDutyCycle;
-    }
-    //ToDo: update duty cycle in register
-}
-
-void Timer0Attiny85::configTimer(uint8_t argSemaphoreKey) {
+void Timer0Attiny85::configTimerCompareMatch(uint8_t argSemaphoreKey) {
     if (pSemaphore.checkKey(argSemaphoreKey)) {
         if (timerState == BUSSY_STATE) {
             stop(argSemaphoreKey);
             reset(argSemaphoreKey);
         }
         //CTC mode data sheet p 79
-        TCCR0A &= ~(1 << WGM02);
+        TCCR0B &= ~(1 << WGM02);
         TCCR0A |= (1 << WGM01);
-        TCCR0B &= ~(1 << WGM00);
+        TCCR0A &= ~(1 << WGM00);
 
         //normal port operation -> datasheet p 78
         TCCR0A &= ~(1 << COM0A1);
         TCCR0A &= ~(1 << COM0A0);
+        TCCR0A &= ~(1 << COM0B1);
+        TCCR0A &= ~(1 << COM0B0);
 
-        OCR0A = outputCompareMatchValue;
-
-        //configure interrupt
+        //configure interrupt for OCR0A compare match 
         TIMSK |= (1 << OCIE0A); //sei() musst be called by the client/application
         TIMSK &= ~(1 << OCIE0B);
-        TIMSK &= ~(1 << TOIE0);
+
+        start(argSemaphoreKey);
     }
 }
 
-void Timer0Attiny85::configPwm(uint8_t argSemaphoreKey) {
+void Timer0Attiny85::configTimerOverflow(uint8_t argSemaphoreKey) {
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
+        //if neither PWM nor compare match timer is set, set to normal mode
+        //otherwise, don't change the setting of the running mode
+        if (timerState != BUSSY_STATE) {
+            //CTC mode data sheet p 79
+            TCCR0B &= ~(1 << WGM02);
+            TCCR0A &= ~(1 << WGM01);
+            TCCR0A &= ~(1 << WGM00);
+
+            //normal port operation -> datasheet p 78
+            TCCR0A &= ~(1 << COM0A1);
+            TCCR0A &= ~(1 << COM0A0);
+            TCCR0A &= ~(1 << COM0B1);
+            TCCR0A &= ~(1 << COM0B0);
+
+            timerState = BUSSY_STATE;
+        }
+        //set overflow interrupt
+        TIMSK |= (1 << TOIE0);
+
+        start(argSemaphoreKey);
+    }
+}
+
+void Timer0Attiny85::setDutyCycle(uint8_t argSemaphoreKey, uint8_t argPin, uint8_t argDutyCycle) {
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (argDutyCycle > 100)
+            dutyCycle = 100;
+        else
+            dutyCycle = argDutyCycle;
+        if (argPin == PB0)
+            OCR0A = (uint8_t) (255UL * (uint16_t) dutyCycle / 100UL);
+        else if (argPin == PB1)
+            OCR0B = (uint8_t) (255UL * (uint16_t) dutyCycle / 100UL);
+    }
+}
+
+void Timer0Attiny85::configPwm(uint8_t argSemaphoreKey, uint8_t argPin) {
     if (pSemaphore.checkKey(argSemaphoreKey)) {
         if (timerState == BUSSY_STATE) {
             stop(argSemaphoreKey);
             reset(argSemaphoreKey);
         }
-        //config fast PWM , Top = OCR0A data sheet p 79
-        TCCR0A |= (1 << WGM02);
+
+        //config fast PWM , Top = 0xff data sheet p 79
+        TCCR0B &= ~(1 << WGM02);
         TCCR0A |= (1 << WGM01);
-        TCCR0B |= (1 << WGM00);
+        TCCR0A |= (1 << WGM00);
 
         //clear output pin on compare match, set at bottom -> datasheet p 78
-        TCCR0A |= (1 << COM0A1);
-        TCCR0A &= ~(1 << COM0A0);
+        if (argPin == PB0) {
+            TCCR0A |= (1 << COM0A1);
+            TCCR0A &= ~(1 << COM0A0);
+        } else if (argPin == PB1) {
+            TCCR0A |= (1 << COM0B1);
+            TCCR0A &= ~(1 << COM0B0);
+        }
 
-        OCR0A = (uint8_t) (255UL * (uint16_t) dutyCycle / 100UL);
-
-        //configure interrupt
-        TIMSK |= (1 << OCIE0A); //sei() musst be called by the client/application
+        //no compare match interrupt required
+        TIMSK &= ~(1 << OCIE0A);
         TIMSK &= ~(1 << OCIE0B);
-        TIMSK |= (1 << TOIE0);
+
+        start(argSemaphoreKey);
     }
 }
 
@@ -164,6 +180,11 @@ void Timer0Attiny85::setPrescalerRegister(void) {
             TCCR0B |= (1 << CS02);
             TCCR0B &= ~(1 << CS01);
             TCCR0B |= (1 << CS00);
+            break;
+        default:
+            TCCR0B &= ~(1 << CS02);
+            TCCR0B &= ~(1 << CS01);
+            TCCR0B &= ~(1 << CS00);
             break;
     }
 }
@@ -202,15 +223,6 @@ void Timer0Attiny85::cleanup(uint8_t argSemaphoreKey) {
         TIMSK &= ~(1 << TOIE0);
     }
 }
-
-
-//void Timer0Attiny85::activateSynchronisationMode(void){
-//    //see datasheet p 77
-//    GTCCR |= (1 << TSM);
-//}
-//void Timer0Attiny85::deactivateSynchronisationMode(void){
-//    GTCCR &= ~(1 << TSM);
-//}
 
 //------------------------------------------------------------------
 // class Timer1Attiny85 operations

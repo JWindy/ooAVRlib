@@ -5,7 +5,6 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>libTimer.h</itemPath>
-      <itemPath>ioMapAttiny85DefaultDebuggingBoard.h</itemPath>
       <itemPath>lib/libUtility.h</itemPath>
       <itemPath>lib/libIOHandler.h</itemPath>
     </logicalFolder>
@@ -177,7 +176,7 @@
         <property key="AutoSelectMemRanges" value="auto"/>
         <property key="communication.activationmode" value="nohv"/>
         <property key="communication.interface" value="dw"/>
-        <property key="communication.speed" value="${communication.speed.default}"/>
+        <property key="communication.speed" value="0,125"/>
         <property key="debugoptions.debug-startup" value="Use system settings"/>
         <property key="debugoptions.reset-behaviour" value="Use system settings"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
@@ -220,7 +219,7 @@
         <property key="AutoSelectMemRanges" value="auto"/>
         <property key="communication.activationmode" value="nohv"/>
         <property key="communication.interface" value="dw"/>
-        <property key="communication.speed" value="${communication.speed.default}"/>
+        <property key="communication.speed" value="0,125"/>
         <property key="debugoptions.debug-startup" value="Use system settings"/>
         <property key="debugoptions.reset-behaviour" value="Use system settings"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
