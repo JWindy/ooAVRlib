@@ -27,12 +27,7 @@ void libIOHandler::setPinLow(uint8_t argPin){
 }
 
 void libIOHandler::togglePin(uint8_t argPin){
-    if(readPinRaw(argPin)){
-        setPinLow(argPin);
-    }
-    else{
-        setPinHigh(argPin);
-    }
+    PORTB ^= (1 << argPin); 
 }
 
 void libIOHandler::setPinInput(uint8_t argPin, uint8_t argPullUp){
