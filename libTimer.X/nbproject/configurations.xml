@@ -7,6 +7,7 @@
       <itemPath>libTimer.h</itemPath>
       <itemPath>lib/libUtility.h</itemPath>
       <itemPath>lib/libIOHandler.h</itemPath>
+      <itemPath>ioMapAttiny85LEDDebuggingBoard.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
