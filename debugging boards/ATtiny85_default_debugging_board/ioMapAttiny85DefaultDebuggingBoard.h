@@ -21,10 +21,6 @@
 #ifndef IOMAPATTINY85DEFAULTDEBUGGINGBOARD_H
 #define	IOMAPATTINY85DEFAULTDEBUGGINGBOARD_H
 
-#ifndef __AVR_ATtiny85__
-    #define __AVR_ATtiny85__
-#endif
-
 #include <avr/io.h>
 
 const uint8_t LED_PIN         = PB1;
