@@ -47,13 +47,16 @@ class Semaphore{
                         Semaphore(uint8_t argMaxNumberOfUser);
         //If the resourece is available upon request, lock() returns a key, which is 
         //required to unlock the resource -> argKey. 
+        //locking requires 3 bytes of program memory
         uint8_t         lock(void);
         //If the ressource can be unlocked (ressource locked and key correct), 
         //unlock returns 0, otherwise it returns argKey
+        //unlocking requires 10 byte of program memory
         uint8_t         unlock(uint8_t argKey);
         //Any critical operation of the ressource/object can be guarded by 
         //checking the key of the user -> returns 1, if the key is correct, 
         //otherwise returns 0
+        //checking the key requires to 2 byte of program memory
         uint8_t         checkKey(uint8_t argKey);
         
     private:
