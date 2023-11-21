@@ -21,10 +21,6 @@
 #ifndef IOMAPATTINY85LEDDEBUGGINGBOARD_H
 #define	IOMAPATTINY85LEDDEBUGGINGBOARD_H
 
-#ifndef __AVR_ATtiny85__
-    #define __AVR_ATtiny85__
-#endif
-
 #include <avr/io.h>
 
 const uint8_t LED_PIN0 = PB0; //don't change. PWM hard wired
