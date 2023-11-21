@@ -2,30 +2,33 @@
 Description:    Hardware proxy to configure, setup, poll and close the timer 
                 capabilites of the MUC
                 
-                The library supports the following modes 
-                for timer 0:
+                The library supports the following modes for timer 0 and timer 1:
                     - Timer compare match mode
                         - can be linked to any pin in user application - implemented in SW
                         - set frequency by prescaler and output compare match value
+                        - can be configured for OCRxA and OCRxB. However, only one of
+                            one interrupt can be active at a time. -> activate and deactive other timer
+                            Activating one compare match interrupt automatically deactivates the other
                         - can't be used in parallel with any other mode
                     - Overflow mode
                         - can be linked to any pin in user application - implemented in SW
                         - set frequency by prescaler only
                         - I don't see, why this mode would be used instead of timer compare match 
                         - Settings of pwm or compare match timer overrule overflow mode settings
-                        - If PWM mode is not active, when calling configOverflowTimer
+                        - If PWM mode is not active, when calling configOverflowTimer,
                           the timer is set to normal mode.  
                         - this mode can be used parallel to PWM mode
                         - can't be used in parallel to timer compare match mode
                     - PWM mode
-                        - can be linked to PB0 and/or PB1 and/or PB4 - implemented in HW
-                        - period is determined by prescaler, duty cycle by the corresponding parameter
+                        - can be linked to PB0 and/or PB1 (timer0) or PB1 and/or PB4 (timer1) - implemented in HW
+                        - period is determined by prescaler, duty cycle and period (timer1 only)
                         - can be used in parallel to overflow mode
-                        - the frequency for every prescaler has not been verified. 
-                            Verify, if important
+                        - can't be used in parallel to compare match mode
+                        - the frequency for every prescaler has not been verified.
                     - PWM and overflow mode in parallel
                         - PWM mode and overflow mode can be used simulatenously
-                        - the prescaler sets the period of both modes                    
+                        - timer0: the prescaler sets the period of both modes                    
+                        - timer1: prescaler and the parameter period (OCR1C) set the period of both modes
  
                 The following features are not (yet) supported: external clock,
                 phase corrected PWM mode, assynchronous/fast clocking mode of timer1
@@ -42,8 +45,8 @@ Author:         Johannes Windmiller
 
 Dependencies:   either timer0 or timer1 , check #include for required libraries
                 PWM is hard coded to toggle PB0 and/or PB1 and/or PB4. 
-                Compare match timer0 depends on OCR0A, 
-                compare match timer1 on OCR1A and OCR1C.
+                Compare match timer0 depends on OCR0A or OCR0B, 
+                compare match timer1 on (OCR1A or OCR1B) and OCR1C.
  
 Version:        v0.1
 
@@ -53,14 +56,10 @@ Supported MUC:  ATtiny85 @ 8 MHz
  
 References:     ATtiny85 datasheet
 
-Comment:        
+Comment:        none
  
 Copyright:      see LICENSE_software.md in GitHub root folder
  *--------------------------------------------------------------------*/
-
-//ToDo 
-//  add OCR0B again and reset TCNT=0 in ISR
-//  apply to libUartTx
 
 #ifndef LIBTIMER_H
 #define	LIBTIMER_H
@@ -89,10 +88,10 @@ enum clockPrescaler_t {
     PRESCALER16384
 };
 
-//enum ocr_t {
-//    OCR_A,
-//    OCR_B
-//};
+enum ocr_t {
+    OCR_A,
+    OCR_B
+};
 
 class Timer {//abstract class
 public:
@@ -102,7 +101,7 @@ public:
     //Stop and reset the timer, if running.
     //Set all parameters according to the private attributes in timer mode.
     //Starts the timer.
-    virtual void configTimerCompareMatch(uint8_t argSemaphoreKey) = 0;
+    virtual void configTimerCompareMatch(uint8_t argSemaphoreKey, ocr_t argOcrSelect) = 0;
 
     //The overflow mode is intended to be used in parallel to the PWM mode. 
     //If used independently, compare match timer gives more options for configuration
@@ -146,18 +145,18 @@ public:
     //Applies to timer only, not relevant for PWM
     //Output compare match interrupt is activated.
     //Change will be applied immediately.
-    virtual void setOutputCompareMatchValue(uint8_t argSemaphoreKey, uint8_t argOcrValue) = 0;
+    virtual void setOutputCompareMatchValue(uint8_t argSemaphoreKey, ocr_t argOcrSelect, uint8_t argOcrValue) = 0;
 
-//    //Activates the output compare match interrupt
-//    //Deactivates the output compare match of "the other"  output compare match interrupt
-//    virtual void activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) = 0;
-//    //Deactivates the output compare match interrupt
-//    virtual void deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) = 0;
+    //Activates the output compare match interrupt
+    //Deactivates the output compare match of "the other"  output compare match interrupt
+    virtual void activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) = 0;
+    //Deactivates the output compare match interrupt
+    virtual void deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) = 0;
 
-//     //Activates the overflow interrupt
-//    virtual void activateOverflowInterrupt(uint8_t argSemaphoreKey) = 0;
-//    //Deactivates the overflow interrupt
-//    virtual void deactivateOverflowInterrupt(uint8_t argSemaphoreKey) = 0;
+     //Activates the overflow interrupt
+    virtual void activateOverflowInterrupt(uint8_t argSemaphoreKey) = 0;
+    //Deactivates the overflow interrupt
+    virtual void deactivateOverflowInterrupt(uint8_t argSemaphoreKey) = 0;
     
     //Change the duty cycle for PWM mode.
     //Change will be applied immediately.
@@ -165,8 +164,8 @@ public:
 
 protected:
     clockPrescaler_t prescaler; // see ATiny85 data sheet p80
-    uint8_t outputCompareMatchValue; //OCR0A data sheet p80
-//    uint8_t outputCompareMatchValueB; //OCR0B data sheet p80
+    uint8_t outputCompareMatchValueA; //OCR0A data sheet p80
+    uint8_t outputCompareMatchValueB; //OCR0B data sheet p80
     uint8_t dutyCycle; //in %
 
     TimerAttiny85(void);
@@ -187,7 +186,7 @@ public:
     //Stop and reset the timer, if running.
     //Set all parameters according to the private attributes in timer mode.
     //Starts the timer.
-    void configTimerCompareMatch(uint8_t argSemaphoreKey);
+    void configTimerCompareMatch(uint8_t argSemaphoreKey, ocr_t argOcrSelect);
 
     //The overflow mode is intended to be used in parallel to the PWM mode. 
     //If used independently, compare match timer gives more options for configuration
@@ -219,19 +218,19 @@ public:
     //Applies to timer only, not relevant for PWM
     //Output compare match interrupt is activated.
     //Change will be applied immediately.
-    void setOutputCompareMatchValue(uint8_t argSemaphoreKey, uint8_t argOcrValue);
-//
-//    //Activates the output compare match interrupt
-//    //Deactivates the output compare match of "the other"  output compare match interrupt
-//    void activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect);
-//    //Deactivates the output compare match interrupt
-//    void deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect);
-//
-//    //Activates the overflow interrupt
-//    void activateOverflowInterrupt(uint8_t argSemaphoreKey);
-//    //Deactivates the overflow interrupt
-//    void deactivateOverflowInterrupt(uint8_t argSemaphoreKey);
-//    
+    void setOutputCompareMatchValue(uint8_t argSemaphoreKey, ocr_t argOcrSelect, uint8_t argOcrValue);
+
+    //Activates the output compare match interrupt
+    //Deactivates the output compare match of "the other"  output compare match interrupt
+    void activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect);
+    //Deactivates the output compare match interrupt
+    void deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect);
+
+    //Activates the overflow interrupt
+    void activateOverflowInterrupt(uint8_t argSemaphoreKey);
+    //Deactivates the overflow interrupt
+    void deactivateOverflowInterrupt(uint8_t argSemaphoreKey);
+    
     //Change the duty cycle [%] for PWM mode.
     //Applies to PWM only, not relevant for timer
     //Change will be applied immediately.
@@ -257,7 +256,7 @@ public:
     //Stop and reset the timer, if running.
     //Set all parameters according to the private attributes in timer mode.
     //Starts the timer.
-    void configTimerCompareMatch(uint8_t argSemaphoreKey);
+    void configTimerCompareMatch(uint8_t argSemaphoreKey, ocr_t argOcrSelect);
 
     //The overflow mode is intended to be used in parallel to the PWM mode. 
     //If used independently, compare match timer gives more options for configuration
@@ -286,18 +285,18 @@ public:
     //Applies to timer only, not relevant for PWM
     //Output compare match interrupt is activated.
     //Change will be applied immediately..
-    void setOutputCompareMatchValue(uint8_t argSemaphoreKey, uint8_t argOcrValue);
+    void setOutputCompareMatchValue(uint8_t argSemaphoreKey, ocr_t argOcrSelect, uint8_t argOcrValue);
 //
-//    //Activates the output compare match interrupt
-//    //Deactivates the output compare match of "the other"  output compare match interrupt
-//    void activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect);
-//    //Deactivates the output compare match interrupt
-//    void deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect);
-//
-//    //Activates the overflow interrupt
-//    void activateOverflowInterrupt(uint8_t argSemaphoreKey);
-//    //Deactivates the overflow interrupt
-//    void deactivateOverflowInterrupt(uint8_t argSemaphoreKey);
+    //Activates the output compare match interrupt
+    //Deactivates the output compare match of "the other"  output compare match interrupt
+    void activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect);
+    //Deactivates the output compare match interrupt
+    void deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect);
+
+    //Activates the overflow interrupt
+    void activateOverflowInterrupt(uint8_t argSemaphoreKey);
+    //Deactivates the overflow interrupt
+    void deactivateOverflowInterrupt(uint8_t argSemaphoreKey);
     
     //Changes the duty cycle [0:255] of both PWM channels.
     //Applies to PWM only, not relevant for timer

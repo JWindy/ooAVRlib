@@ -35,7 +35,7 @@ ISR(TIM0_COMPA_vect) {
 
 ISR(TIM0_COMPB_vect) {
     compareMatchInterruptCounter++;
-    TCNT0 = 0;
+    TCNT0 = 0;//rest timer counter for OCR0B!!!
 }
 
 //timer0 overflow interrupt
@@ -50,6 +50,13 @@ ISR(TIM0_OVF_vect) {
 
 ISR(TIM1_COMPA_vect) {
     compareMatchInterruptCounter++;
+}
+
+//timer1 compare B match interrupt 
+
+ISR(TIM1_COMPB_vect) {
+    compareMatchInterruptCounter++;
+    TCNT1 = 0;//rest timer counter for OCR1B!!!
 }
 
 //timer1 overflow interrupt
@@ -147,8 +154,8 @@ int main(void) {
                 prescaler = PRESCALER1024;
                 myTimer0->setPrescaler(mySemaphoreKey, prescaler);
                 outputCompareMatchValue = 255;
-                myTimer0->setOutputCompareMatchValue(mySemaphoreKey, outputCompareMatchValue);
-                myTimer0->configTimerCompareMatch(mySemaphoreKey);
+                myTimer0->setOutputCompareMatchValue(mySemaphoreKey, OCR_A, outputCompareMatchValue);
+                myTimer0->configTimerCompareMatch(mySemaphoreKey, OCR_A);
                 sei();
 
                 while (loopCounter) {
@@ -183,11 +190,11 @@ int main(void) {
                 loopCounter = numberLoopsPerTest;
 
                 outputCompareMatchValue = 160;
-                myTimer0->setOutputCompareMatchValue(mySemaphoreKey, outputCompareMatchValue);
+                myTimer0->setOutputCompareMatchValue(mySemaphoreKey, OCR_B, outputCompareMatchValue);
                 prescaler = PRESCALER1024;
                 myTimer0->setPrescaler(mySemaphoreKey, prescaler);
 
-                myTimer0->configTimerCompareMatch(mySemaphoreKey);
+                myTimer0->configTimerCompareMatch(mySemaphoreKey, OCR_B);
                 sei();
 
                 while (loopCounter) {
@@ -222,12 +229,12 @@ int main(void) {
                 loopCounter = numberLoopsPerTest;
 
                 outputCompareMatchValue = 255;
-                myTimer0->setOutputCompareMatchValue(mySemaphoreKey, outputCompareMatchValue);
+                myTimer0->setOutputCompareMatchValue(mySemaphoreKey, OCR_A, outputCompareMatchValue);
                 prescaler = PRESCALER256;
                 myTimer0->setPrescaler(mySemaphoreKey, prescaler);
 
 
-                myTimer0->configTimerCompareMatch(mySemaphoreKey);
+                myTimer0->configTimerCompareMatch(mySemaphoreKey, OCR_A);
                 sei();
 
                 while (loopCounter) {
@@ -264,11 +271,11 @@ int main(void) {
                 loopCounter = numberLoopsPerTest;
 
                 outputCompareMatchValue = 160;
-                myTimer0->setOutputCompareMatchValue(mySemaphoreKey, outputCompareMatchValue);
+                myTimer0->setOutputCompareMatchValue(mySemaphoreKey, OCR_A, outputCompareMatchValue);
                 prescaler = PRESCALER1024;
                 myTimer0->setPrescaler(mySemaphoreKey, prescaler);
 
-                myTimer0->configTimerCompareMatch(mySemaphoreKey);
+                myTimer0->configTimerCompareMatch(mySemaphoreKey, OCR_A);
                 sei();
 
                 while (loopCounter) {
@@ -481,8 +488,8 @@ int main(void) {
                 myTimer1->setPrescaler(mySemaphoreKey, prescaler);
                 outputCompareMatchValue = 255;
 
-                myTimer1->setOutputCompareMatchValue(mySemaphoreKey, outputCompareMatchValue);
-                myTimer1->configTimerCompareMatch(mySemaphoreKey);
+                myTimer1->setOutputCompareMatchValue(mySemaphoreKey, OCR_A, outputCompareMatchValue);
+                myTimer1->configTimerCompareMatch(mySemaphoreKey, OCR_A);
                 sei();
 
                 while (loopCounter) {
@@ -520,9 +527,9 @@ int main(void) {
                 loopCounter = numberLoopsPerTest;
 
                 outputCompareMatchValue = 160;
-                myTimer1->setOutputCompareMatchValue(mySemaphoreKey, outputCompareMatchValue);
+                myTimer1->setOutputCompareMatchValue(mySemaphoreKey, OCR_B, outputCompareMatchValue);
 
-                myTimer1->configTimerCompareMatch(mySemaphoreKey);
+                myTimer1->configTimerCompareMatch(mySemaphoreKey, OCR_B);
                 sei();
 
                 while (loopCounter) {
@@ -558,9 +565,9 @@ int main(void) {
                 prescaler = PRESCALER256;
                 myTimer1->setPrescaler(mySemaphoreKey, prescaler);
                 outputCompareMatchValue = 255;
-                myTimer1->setOutputCompareMatchValue(mySemaphoreKey, outputCompareMatchValue);
+                myTimer1->setOutputCompareMatchValue(mySemaphoreKey, OCR_A, outputCompareMatchValue);
 
-                myTimer1->configTimerCompareMatch(mySemaphoreKey);
+                myTimer1->configTimerCompareMatch(mySemaphoreKey, OCR_A);
                 sei();
 
                 while (loopCounter) {
@@ -599,9 +606,9 @@ int main(void) {
                 prescaler = PRESCALER1024;
                 myTimer1->setPrescaler(mySemaphoreKey, prescaler);
                 outputCompareMatchValue = 160;
-                myTimer1->setOutputCompareMatchValue(mySemaphoreKey, outputCompareMatchValue);
+                myTimer1->setOutputCompareMatchValue(mySemaphoreKey, OCR_A, outputCompareMatchValue);
 
-                myTimer1->configTimerCompareMatch(mySemaphoreKey);
+                myTimer1->configTimerCompareMatch(mySemaphoreKey, OCR_A);
                 sei();
 
                 while (loopCounter) {

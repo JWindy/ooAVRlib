@@ -37,8 +37,8 @@ uint8_t TimerAttiny85::calculateDutyCycleRegisterValue(uint8_t argTop) {
 
 Timer0Attiny85::Timer0Attiny85(void) : TimerAttiny85() {
     prescaler = PRESCALER1024; // see ATiny85 data sheet p80
-    outputCompareMatchValue = 255; //OCR0A data sheet p80
-    //    outputCompareMatchValueB = 255; //OCR0B data sheet p80
+    outputCompareMatchValueA = 255; //OCR0A data sheet p80
+    outputCompareMatchValueB = 255; //OCR0B data sheet p80
     dutyCycle = 100; //in %
 };
 
@@ -58,64 +58,67 @@ void Timer0Attiny85::setPrescaler(uint8_t argSemaphoreKey, clockPrescaler_t argP
     }
 }
 
-void Timer0Attiny85::setOutputCompareMatchValue(uint8_t argSemaphoreKey, uint8_t argOcrValue) {
+void Timer0Attiny85::setOutputCompareMatchValue(uint8_t argSemaphoreKey, ocr_t argOcrSelect, uint8_t argOcrValue) {
     if (pSemaphore.checkKey(argSemaphoreKey)) {
-        //        if (argOcrSelect == OCR_A) {
-        outputCompareMatchValue = argOcrValue;
-        OCR0A = outputCompareMatchValue;
-        //        } else if (argOcrSelect == OCR_B) {
-        //            outputCompareMatchValueB = argOcrValue;
-        //            OCR0B = outputCompareMatchValueB;
-        //        }
-        //        activateOutputCompareMatchInterrupt(argSemaphoreKey, argOcrSelect);
+        if (argOcrSelect == OCR_A) {
+            outputCompareMatchValueA = argOcrValue;
+            OCR0A = outputCompareMatchValueA;
+        } else if (argOcrSelect == OCR_B) {
+            outputCompareMatchValueB = argOcrValue;
+            OCR0B = outputCompareMatchValueB;
+        }
+        activateOutputCompareMatchInterrupt(argSemaphoreKey, argOcrSelect);
     }
 }
-//
-//void Timer0Attiny85::activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey) {
-//    //sei() musst be called by the user/application
-//    if (pSemaphore.checkKey(argSemaphoreKey)) {
-//        if (argOcrSelect == OCR_A) {
-//            TIMSK |= (1 << OCIE0A);
-//            TIMSK &= ~(1 << OCIE0B);
-//        } else if (argOcrSelect == OCR_B) {
-//            TIMSK |= (1 << OCIE0B);
-//            TIMSK &= ~(1 << OCIE0A);
-//        }
-//    }
-//}
-//
-//void Timer0Attiny85::deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey) {
-//    //        cli() musst be called by user/application
-//    if (pSemaphore.checkKey(argSemaphoreKey)) {
-//        if (argOcrSelect == OCR_A) {
-//            TIMSK &= ~(1 << OCIE0A);
-//        } else if (argOcrSelect == OCR_B) {
-//            TIMSK &= ~(1 << OCIE0B);
-//        }
-//    }
-//}
-//
-//void Timer0Attiny85::activateOverflowInterrupt(uint8_t argSemaphoreKey) {
-//    if (pSemaphore.checkKey(argSemaphoreKey)) {
-//        TIMSK |= (1 << TOIE0);
-//    }
-//}
-//
-//void Timer0Attiny85::deactivateOverflowInterrupt(uint8_t argSemaphoreKey) {
-//    if (pSemaphore.checkKey(argSemaphoreKey)) {
-//        TIMSK &= ~(1 << TOIE0);
-//    }
-//}
 
-void Timer0Attiny85::configTimerCompareMatch(uint8_t argSemaphoreKey) {
+void Timer0Attiny85::activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
+    //sei() musst be called by the user/application
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (argOcrSelect == OCR_A) {
+            TIMSK |= (1 << OCIE0A);
+            TIMSK &= ~(1 << OCIE0B);
+        } else if (argOcrSelect == OCR_B) {
+            TIMSK |= (1 << OCIE0B);
+            TIMSK &= ~(1 << OCIE0A);
+        }
+    }
+}
+
+void Timer0Attiny85::deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
+    //        cli() musst be called by user/application
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (argOcrSelect == OCR_A) {
+            TIMSK &= ~(1 << OCIE0A);
+        } else if (argOcrSelect == OCR_B) {
+            TIMSK &= ~(1 << OCIE0B);
+        }
+    }
+}
+
+void Timer0Attiny85::activateOverflowInterrupt(uint8_t argSemaphoreKey) {
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
+        TIMSK |= (1 << TOIE0);
+    }
+}
+
+void Timer0Attiny85::deactivateOverflowInterrupt(uint8_t argSemaphoreKey) {
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
+        TIMSK &= ~(1 << TOIE0);
+    }
+}
+
+void Timer0Attiny85::configTimerCompareMatch(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
     if (pSemaphore.checkKey(argSemaphoreKey)) {
         if (timerState == BUSSY_STATE) {
             stop(argSemaphoreKey);
             reset(argSemaphoreKey);
         }
-        
-        OCR0A = outputCompareMatchValue;
-        
+        if (argOcrSelect == OCR_A) {
+            OCR0A = outputCompareMatchValueA;
+        } else if (argOcrSelect == OCR_B) {
+            OCR0B = outputCompareMatchValueB;
+        }
+
         //CTC mode data sheet p 79
         TCCR0B &= ~((1 << WGM02) | (1 << WGM00));
         TCCR0A |= (1 << WGM01);
@@ -123,10 +126,7 @@ void Timer0Attiny85::configTimerCompareMatch(uint8_t argSemaphoreKey) {
         //normal port operation -> datasheet p 78
         TCCR0A &= ~((1 << COM0A1) | (1 << COM0A0) | (1 << COM0B1) | (1 << COM0B0));
 
-        //        //configure interrupt for OCR0A compare match 
-        TIMSK |= (1 << OCIE0A); //sei() musst be called by the client/application
-        TIMSK &= ~(1 << OCIE0B);
-        
+        activateOutputCompareMatchInterrupt(argSemaphoreKey, argOcrSelect);
         start(argSemaphoreKey);
     }
 }
@@ -145,9 +145,7 @@ void Timer0Attiny85::configTimerOverflow(uint8_t argSemaphoreKey) {
 
             timerState = IDLE_STATE;
         }
-        //set overflow interrupt
-        TIMSK |= (1 << TOIE0);
-        //        activateOverflowInterrupt(argSemaphoreKey);
+        activateOverflowInterrupt(argSemaphoreKey);
 
         start(argSemaphoreKey);
     }
@@ -174,7 +172,7 @@ void Timer0Attiny85::configPwm(uint8_t argSemaphoreKey, uint8_t argPin) {
         }
 
         setDutyCycle(argSemaphoreKey, argPin, dutyCycle);
-        
+
         //config fast PWM , Top = 0xff data sheet p 79
         TCCR0B &= ~(1 << WGM02);
         TCCR0A |= ((1 << WGM01) | (1 << WGM00));
@@ -263,8 +261,8 @@ void Timer0Attiny85::cleanup(uint8_t argSemaphoreKey) {
 
 Timer1Attiny85::Timer1Attiny85(void) : TimerAttiny85() {
     prescaler = PRESCALER1024; // see ATiny85 data sheet p80
-    outputCompareMatchValue = 255; //OCR1A data sheet p91
-    //    outputCompareMatchValueB = 255; //OCR1A data sheet p91
+    outputCompareMatchValueA = 255; //OCR1A data sheet p91
+    outputCompareMatchValueB = 255; //OCR1B data sheet p91
     dutyCycle = 100; //in %
     period = 255; //PWM mode, OCR1C data sheet p92
 };
@@ -285,79 +283,79 @@ void Timer1Attiny85::setPrescaler(uint8_t argSemaphoreKey, clockPrescaler_t argP
     }
 }
 
-void Timer1Attiny85::setOutputCompareMatchValue(uint8_t argSemaphoreKey, uint8_t argOcrValue) {
+void Timer1Attiny85::setOutputCompareMatchValue(uint8_t argSemaphoreKey, ocr_t argOcrSelect, uint8_t argOcrValue) {
     if (pSemaphore.checkKey(argSemaphoreKey)) {
-        //        if (argOcrSelect == OCR_A) {
-        outputCompareMatchValue = argOcrValue;
-        OCR1A = outputCompareMatchValue;
-        OCR1C = outputCompareMatchValue;
-        //        } else if (argOcrSelect == OCR_B) {
-        //            outputCompareMatchValueB = argOcrValue;
-        //            OCR1B = outputCompareMatchValue;
-        //            OCR1C = outputCompareMatchValue;
-        //        }
-        //        activateOutputCompareMatchInterrupt(argSemaphoreKey, argOcrSelect);
-        //        OCR1A = outputCompareMatchValue; //triggers the compare match interrupt
-        //        OCR1C = outputCompareMatchValue; //triggers the rest of the timer
+        if (argOcrSelect == OCR_A) {
+            outputCompareMatchValueA = argOcrValue;
+            OCR1A = outputCompareMatchValueA;
+            OCR1C = outputCompareMatchValueA;
+        } else if (argOcrSelect == OCR_B) {
+            outputCompareMatchValueB = argOcrValue;
+            OCR1B = outputCompareMatchValueB;
+            OCR1C = outputCompareMatchValueB;
+        }
+        activateOutputCompareMatchInterrupt(argSemaphoreKey, argOcrSelect);
     }
 }
-//
-//void Timer1Attiny85::activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey) {
-//    //sei() musst be called by the user/application    
-//    if (pSemaphore.checkKey(argSemaphoreKey)) {
-//        if (argOcrSelect == OCR_A) {
-//            TIMSK |= (1 << OCIE1A);
-//            TIMSK &= ~(1 << OCIE1B);
-//        } else if (argOcrSelect == OCR_B) {
-//            TIMSK |= (1 << OCIE1B);
-//            TIMSK &= ~(1 << OCIE1A);
-//        }
-//    }
-//}
-//
-//void Timer1Attiny85::deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey) {
-//    //cli() musst be called by the user/application    
-//    if (pSemaphore.checkKey(argSemaphoreKey)) {
-//        if (argOcrSelect == OCR_A) {
-//            TIMSK &= ~(1 << OCIE1A);
-//        } else if (argOcrSelect == OCR_B) {
-//            TIMSK &= ~(1 << OCIE1B);
-//        }
-//    }
-//}
-//
-//void Timer1Attiny85::activateOverflowInterrupt(uint8_t argSemaphoreKey) {
-//    if (pSemaphore.checkKey(argSemaphoreKey)) {
-//        TIMSK |= (1 << TOIE1);
-//    }
-//}
-//
-//void Timer1Attiny85::deactivateOverflowInterrupt(uint8_t argSemaphoreKey) {
-//    if (pSemaphore.checkKey(argSemaphoreKey)) {
-//        TIMSK &= ~(1 << TOIE1);
-//    }
-//}
 
-void Timer1Attiny85::configTimerCompareMatch(uint8_t argSemaphoreKey) {
+void Timer1Attiny85::activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
+    //sei() musst be called by the user/application    
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (argOcrSelect == OCR_A) {
+            TIMSK |= (1 << OCIE1A);
+            TIMSK &= ~(1 << OCIE1B);
+        } else if (argOcrSelect == OCR_B) {
+            TIMSK |= (1 << OCIE1B);
+            TIMSK &= ~(1 << OCIE1A);
+        }
+    }
+}
+
+void Timer1Attiny85::deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
+    //cli() musst be called by the user/application    
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (argOcrSelect == OCR_A) {
+            TIMSK &= ~(1 << OCIE1A);
+        } else if (argOcrSelect == OCR_B) {
+            TIMSK &= ~(1 << OCIE1B);
+        }
+    }
+}
+
+void Timer1Attiny85::activateOverflowInterrupt(uint8_t argSemaphoreKey) {
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
+        TIMSK |= (1 << TOIE1);
+    }
+}
+
+void Timer1Attiny85::deactivateOverflowInterrupt(uint8_t argSemaphoreKey) {
+    if (pSemaphore.checkKey(argSemaphoreKey)) {
+        TIMSK &= ~(1 << TOIE1);
+    }
+}
+
+void Timer1Attiny85::configTimerCompareMatch(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
     if (pSemaphore.checkKey(argSemaphoreKey)) {
         if (timerState == BUSSY_STATE) {
             stop(argSemaphoreKey);
             reset(argSemaphoreKey);
         }
-        
-        OCR1C = outputCompareMatchValue;
-        OCR1A = outputCompareMatchValue;
-        
+        if (argOcrSelect == OCR_A) {
+            OCR1C = outputCompareMatchValueA;
+            OCR1A = outputCompareMatchValueA;
+        } else if (argOcrSelect == OCR_A) {
+            OCR1C = outputCompareMatchValueB;
+            OCR1B = outputCompareMatchValueB;
+        }
+
         //CTC mode data sheet p 89
         TCCR1 |= (1 << CTC1);
-        
+
         //normal port operation -> datasheet p 89
         TCCR1 &= ~((1 << COM1A1) | (1 << COM1A0));
         GTCCR &= ~((1 << COM1B1) | (1 << COM1B0));
 
-        //configure interrupt for OCR0A compare match 
-        TIMSK |= (1 << OCIE1A); //sei() musst be called by the client/application
-            
+        activateOutputCompareMatchInterrupt(argSemaphoreKey, argOcrSelect);
         start(argSemaphoreKey);
     }
 }
@@ -367,23 +365,20 @@ void Timer1Attiny85::configTimerOverflow(uint8_t argSemaphoreKey) {
         //if neither PWM nor compare match timer is set, set to normal mode
         //otherwise, don't change the setting of the running mode
         if (timerState != BUSSY_STATE) {
-            
+
             //normal mode data sheet p 89
             TCCR1 &= ~((1 << CTC1) | (1 << PWM1A));
-            
-            outputCompareMatchValue = 255;
-            OCR1C = outputCompareMatchValue; //compar match value to reset the counter and trigger the overflow
-            
+
+            period = 255;
+            OCR1C = period; //compar match value to reset the counter and trigger the overflow
+
             //normal port operation -> datasheet p 89
             TCCR1 &= ~((1 << COM1A1) | (1 << COM1A0));
             GTCCR &= ~((1 << COM1B1) | (1 << COM1B0));
 
             timerState = IDLE_STATE;
         }
-        //set overflow interrupt
-        TIMSK |= (1 << TOIE1);
-        //        activateOverflowInterrupt(argSemaphoreKey);
-
+        activateOverflowInterrupt(argSemaphoreKey);
         start(argSemaphoreKey);
     }
 }
@@ -405,7 +400,6 @@ void Timer1Attiny85::setDutyCycle(uint8_t argSemaphoreKey, uint8_t argPin, uint8
             OCR1A = calculateDutyCycleRegisterValue(period);
         else if (argPin == PB4)
             OCR1B = calculateDutyCycleRegisterValue(period);
-
     }
 }
 
@@ -415,9 +409,9 @@ void Timer1Attiny85::configPwm(uint8_t argSemaphoreKey, uint8_t argPin) {
             stop(argSemaphoreKey);
             reset(argSemaphoreKey);
         }
-        
+
         setDutyCycle(argSemaphoreKey, argPin, dutyCycle);
-        
+
         if (argPin == PB1) {
             //config PWM, Top = OCR1C data sheet p 89
             TCCR1 |= (1 << PWM1A);
