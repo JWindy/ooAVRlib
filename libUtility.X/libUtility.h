@@ -32,7 +32,8 @@ struct ver_t{
 };
 
 enum status_t{
-    INIT_STATE,
+    INIT_STATE,     //initialisation not yet completed
+    READY_STATE,    //initialisation completed
     IDLE_STATE,
     BUSSY_STATE,
     ERROR_STATE
