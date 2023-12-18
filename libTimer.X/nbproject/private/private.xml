@@ -5,9 +5,7 @@
         <group>
             <file>file:/home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libTimer.X/libTimer.h</file>
             <file>file:/home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libTimer.X/libTimerTest.cpp</file>
-            <file>file:/usr/lib/avr/include/util/delay.h</file>
             <file>file:/home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libTimer.X/libTimer.cpp</file>
-            <file>file:/home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libTimer.X/lib/libUtility.cpp</file>
         </group>
     </open-files>
 </project-private>

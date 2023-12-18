@@ -2,15 +2,15 @@
 // copyright applies according to LICENSE_software.md in GitHub root folder
 
 #ifndef BAUD
-#define BAUD 9600
+#    define BAUD 9600
 #endif
 
 #ifndef F_CPU
-#define F_CPU 8000000
+#    define F_CPU 8000000
 #endif
 
 #ifndef __AVR_ATtiny85__
-#define __AVR_ATtiny85__
+#    define __AVR_ATtiny85__
 #endif
 
 #define HW_rev
@@ -26,51 +26,59 @@ volatile uint8_t compareMatchInterruptCounter = 0; //global variable for ISR
 volatile uint16_t overflowInterruptCounter = 0; //global variable for ISR
 
 //timer0 compare A match interrupt 
-
 ISR(TIM0_COMPA_vect) {
+    uint8_t sregTemp = SREG;
     compareMatchInterruptCounter++;
+    SREG = sregTemp;
 };
 
 //timer0 compare B match interrupt 
-
 ISR(TIM0_COMPB_vect) {
+    uint8_t sregTemp = SREG;
     compareMatchInterruptCounter++;
-    TCNT0 = 0;//rest timer counter for OCR0B!!!
+    TCNT0 = 0; //rest timer counter for OCR0B!!!
+    SREG = sregTemp;
 }
 
 //timer0 overflow interrupt
-
 ISR(TIM0_OVF_vect) {
+    uint8_t sregTemp = SREG;
     overflowInterruptCounter++;
+    SREG = sregTemp;
 };
 
-
-
 //timer1 compare A match interrupt 
-
 ISR(TIM1_COMPA_vect) {
+    uint8_t sregTemp = SREG;
     compareMatchInterruptCounter++;
+    SREG = sregTemp;
 }
 
 //timer1 compare B match interrupt 
-
 ISR(TIM1_COMPB_vect) {
+    uint8_t sregTemp = SREG;
     compareMatchInterruptCounter++;
-    TCNT1 = 0;//rest timer counter for OCR1B!!!
+    TCNT1 = 0; //rest timer counter for OCR1B!!!
+    SREG = sregTemp;
 }
 
 //timer1 overflow interrupt
-
 ISR(TIM1_OVF_vect) {
+    uint8_t sregTemp = SREG;
     overflowInterruptCounter++;
+    SREG = sregTemp;
 };
 
 int main(void) {
-    //------------------------------------------------------------------
-    // Timer0Attiny85 test cases
-    //------------------------------------------------------------------
-    Timer0Attiny85* myTimer0 = Timer0Attiny85::getInstance();
-    Timer1Attiny85* myTimer1 = Timer1Attiny85::getInstance();
+
+    Timer0Attiny85::initialise();
+    Timer1Attiny85::initialise();
+
+//    timer0Attiny85_t* myTimer0 = Timer0Attiny85::getInstance();
+//    timer1Attiny85_t* myTimer1 = Timer1Attiny85::getInstance();
+    auto myTimer0 = Timer0Attiny85::getInstance();
+    auto myTimer1 = Timer1Attiny85::getInstance();
+
     libIOHandler myIoHandler;
 
     //this is cheating, but if the semaphore is locked and unlocked, the 
@@ -78,6 +86,7 @@ int main(void) {
     uint8_t mySemaphoreKey = 42;
 
     clockPrescaler_t prescaler = PRESCALER1024; // see ATiny85 data sheet p80
+//    clockPrescaler_t prescaler = PRESCALER2;//ToDo there is no error handling for undefined prescalers...
     uint8_t outputCompareMatchValue = 255; //OCR0A data sheet p80
 
     const uint16_t interruptCounterThreshold = 100UL; //changing this value changes the expected behaviour during the test proceedures
@@ -126,19 +135,22 @@ int main(void) {
     //select test cases
 
     //all test cases
-        uint8_t testCaseArray[] = {1, 2, 3, 4, //timer0 compare match
-            10, //timer0 overflow
-            20, 21, 22, //timer0 PWM
-            30, 31, 32, 33, 34, //timer1 compare match
-            40, //timer1 overflow
-            50, 51, 52, 53}; //timer1 PWM
-//    uint8_t testCaseArray[] = {53}; 
+    uint8_t testCaseArray[] = {1, 2, 3, 4, //timer0 compare match
+        10, //timer0 overflow
+        20, 21, 22, //timer0 PWM
+        30, 31, 32, 33, 34, //timer1 compare match
+        40, //timer1 overflow
+        50, 51, 52, 53}; //timer1 PWM
+//        uint8_t testCaseArray[] = {52}; 
 
     uint8_t numberOfTestCases = sizeof (testCaseArray) / sizeof (uint8_t);
     uint8_t testCaseCounter = 0;
 
     while (testCaseCounter < numberOfTestCases) {
         switch (testCaseArray[testCaseCounter]) {
+                //------------------------------------------------------------------
+                // Timer0Attiny85 test cases
+                //------------------------------------------------------------------
             case 1:
             {
                 /*------------------------------------------------------------
@@ -318,7 +330,10 @@ int main(void) {
                 prescaler = PRESCALER64;
                 myTimer0->setPrescaler(mySemaphoreKey, prescaler);
 
-                myTimer0->configTimerOverflow(mySemaphoreKey);
+//                myTimer0->configTimerOverflow(mySemaphoreKey);
+                myTimer0->configPwmAndTimerOverflow(mySemaphoreKey, LED_PIN0);
+                myTimer0->setDutyCycle(mySemaphoreKey, LED_PIN0, 0);//turn of PWM
+                
                 myIoHandler.setPinLow(LED_PIN4);
                 sei();
 
@@ -400,10 +415,9 @@ int main(void) {
                 myTimer0->setDutyCycle(mySemaphoreKey, LED_PIN0, 50);
                 myTimer0->setDutyCycle(mySemaphoreKey, LED_PIN1, 50);
 
-                myTimer0->configPwm(mySemaphoreKey, LED_PIN0);
+                myTimer0->configPwmAndTimerOverflow(mySemaphoreKey, LED_PIN0);
                 myTimer0->configPwm(mySemaphoreKey, LED_PIN1);
-                myTimer0->configTimerOverflow(mySemaphoreKey);
-
+                
                 myIoHandler.setPinHigh(LED_PIN4);
                 sei();
 
@@ -651,8 +665,8 @@ int main(void) {
 
                 prescaler = PRESCALER64;
                 myTimer1->setPrescaler(mySemaphoreKey, prescaler);
-
-                myTimer1->configTimerOverflow(mySemaphoreKey);
+                myTimer1->configPwmAndTimerOverflow(mySemaphoreKey, LED_PIN4);
+                myTimer1->setDutyCycle(mySemaphoreKey, LED_PIN4, 0);//turn of PWM
 
                 myIoHandler.setPinLow(LED_PIN0);
                 sei();
@@ -733,11 +747,10 @@ int main(void) {
 
                 myTimer1->setDutyCycle(mySemaphoreKey, LED_PIN4, 50);
                 myTimer1->setDutyCycle(mySemaphoreKey, LED_PIN1, 50);
-
-                myTimer1->configTimerOverflow(mySemaphoreKey);
-                myTimer1->configPwm(mySemaphoreKey, LED_PIN4);
+                
+                myTimer1->configPwmAndTimerOverflow(mySemaphoreKey, LED_PIN4);
                 myTimer1->configPwm(mySemaphoreKey, LED_PIN1);
-
+                
                 myIoHandler.setPinHigh(LED_PIN0);
                 sei();
 
@@ -795,8 +808,8 @@ int main(void) {
 
                 //cleaning up
                 myTimer1->stop(mySemaphoreKey);
-                myIoHandler.setPinLow(LED_PIN4);
                 myTimer1->cleanup(mySemaphoreKey);
+                myIoHandler.setPinLow(LED_PIN4);
                 mySemaphoreKey = myTimer1->pSemaphore.unlock(mySemaphoreKey);
                 break;
             }
@@ -844,7 +857,7 @@ int main(void) {
                     loopCounter--;
                 }
                 myTimer1->stop(mySemaphoreKey);
-                myIoHandler.setPinHigh(LED_PIN4);//to ensure to see a failure of the last prescaler
+                myIoHandler.setPinHigh(LED_PIN4); //to ensure to see a failure of the last prescaler
                 _delay_ms(1000);
                 myIoHandler.setPinLow(LED_PIN4);
 
