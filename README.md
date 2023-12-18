@@ -20,6 +20,7 @@ For now, the libraries will be implemented for ATtiny 85 running at 8 MHz. I pla
 # Toolchain
 I published the project files of the schematics and layouts as well as of the IDE. If you encounter any problems, it might help, to try to open the projects as they are and search for the difference. 
 - coding: MPLAB® X IDE -> https://www.microchip.com/en-us/tools-resources/develop/mplab-x-ide
+- additional compiler flags: -std=c++14
 - programming and debugging: ATMEL-ICE -> https://www.microchip.com/en-us/development-tool/atatmel-ice
 - schematics and layouts: KiCad -> https://www.kicad.org/
 
