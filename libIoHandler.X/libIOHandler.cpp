@@ -88,7 +88,7 @@ uint8_t libIOHandler::getDdr(uint8_t argPin){
                 ddrPin    = DDB4; 
                 break;
         }    
-    #elif
+    #else
         #error "libIOHandler not implemented for selected MUC."
     #endif
 
