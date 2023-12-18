@@ -71,8 +71,10 @@ ISR(TIM1_OVF_vect) {
 
 int main(void) {
 
-    Timer0Attiny85::initialise();
-    Timer1Attiny85::initialise();
+    const uint8_t numberOfUser = 1;
+    
+    Timer0Attiny85::initialise(numberOfUser);
+    Timer1Attiny85::initialise(numberOfUser);
 
 //    timer0Attiny85_t* myTimer0 = Timer0Attiny85::getInstance();
 //    timer1Attiny85_t* myTimer1 = Timer1Attiny85::getInstance();
@@ -135,13 +137,13 @@ int main(void) {
     //select test cases
 
     //all test cases
-    uint8_t testCaseArray[] = {1, 2, 3, 4, //timer0 compare match
-        10, //timer0 overflow
-        20, 21, 22, //timer0 PWM
-        30, 31, 32, 33, 34, //timer1 compare match
-        40, //timer1 overflow
-        50, 51, 52, 53}; //timer1 PWM
-//        uint8_t testCaseArray[] = {52}; 
+//    uint8_t testCaseArray[] = {1, 2, 3, 4, //timer0 compare match
+//        10, //timer0 overflow
+//        20, 21, 22, //timer0 PWM
+//        30, 31, 32, 33, 34, //timer1 compare match
+//        40, //timer1 overflow
+//        50, 51, 52, 53}; //timer1 PWM
+        uint8_t testCaseArray[] = {52, 53}; 
 
     uint8_t numberOfTestCases = sizeof (testCaseArray) / sizeof (uint8_t);
     uint8_t testCaseCounter = 0;
@@ -160,7 +162,7 @@ int main(void) {
                   led blinks twice, period approx. 3 sec
                   led off
                 ------------------------------------------------------------ */
-                //mySemaphoreKey = myTimer0->pSemaphore.lock();
+                //mySemaphoreKey = myTimer0->pSemaphore->lock();
 
                 compareMatchInterruptCounter = 0;
                 prescaler = PRESCALER1024;
@@ -184,7 +186,7 @@ int main(void) {
                 myTimer0->stop(mySemaphoreKey);
                 myIoHandler.setPinLow(LED_PIN0);
                 myTimer0->cleanup(mySemaphoreKey);
-                //mySemaphoreKey = myTimer0->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer0->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 2:
@@ -196,7 +198,7 @@ int main(void) {
                   led blinks twice, period approx. 2 sec
                   led off
                 ------------------------------------------------------------ */
-                //mySemaphoreKey = myTimer0->pSemaphore.lock();
+                //mySemaphoreKey = myTimer0->pSemaphore->lock();
 
                 compareMatchInterruptCounter = 0;
                 loopCounter = numberLoopsPerTest;
@@ -223,7 +225,7 @@ int main(void) {
                 myTimer0->stop(mySemaphoreKey);
                 myIoHandler.setPinLow(LED_PIN0);
                 myTimer0->cleanup(mySemaphoreKey);
-                //mySemaphoreKey = myTimer0->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer0->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 3:
@@ -235,7 +237,7 @@ int main(void) {
                   led blinks twice, period approx. 0,75 sec
                   led off
                 ------------------------------------------------------------ */
-                //mySemaphoreKey = myTimer0->pSemaphore.lock();
+                //mySemaphoreKey = myTimer0->pSemaphore->lock();
 
                 compareMatchInterruptCounter = 0;
                 loopCounter = numberLoopsPerTest;
@@ -263,7 +265,7 @@ int main(void) {
                 myTimer0->stop(mySemaphoreKey);
                 myIoHandler.setPinLow(LED_PIN0);
                 myTimer0->cleanup(mySemaphoreKey);
-                //mySemaphoreKey = myTimer0->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer0->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 4:
@@ -277,7 +279,7 @@ int main(void) {
                     led on for approx. 3 sec
                     led off
                 ------------------------------------------------------------ */
-                //mySemaphoreKey = myTimer0->pSemaphore.lock();
+                //mySemaphoreKey = myTimer0->pSemaphore->lock();
 
                 compareMatchInterruptCounter = 0;
                 loopCounter = numberLoopsPerTest;
@@ -310,7 +312,7 @@ int main(void) {
                 myTimer0->stop(mySemaphoreKey);
                 myIoHandler.setPinLow(LED_PIN0);
                 myTimer0->cleanup(mySemaphoreKey);
-                //mySemaphoreKey = myTimer0->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer0->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 10:
@@ -322,7 +324,7 @@ int main(void) {
                  LED blinks twice period approx. 2 sec
                  LED off  
                 ------------------------------------------------------------ */
-                //mySemaphoreKey = myTimer0->pSemaphore.lock();
+                //mySemaphoreKey = myTimer0->pSemaphore->lock();
 
                 overflowInterruptCounter = 0;
                 loopCounter = numberLoopsPerTest;
@@ -330,7 +332,6 @@ int main(void) {
                 prescaler = PRESCALER64;
                 myTimer0->setPrescaler(mySemaphoreKey, prescaler);
 
-//                myTimer0->configTimerOverflow(mySemaphoreKey);
                 myTimer0->configPwmAndTimerOverflow(mySemaphoreKey, LED_PIN0);
                 myTimer0->setDutyCycle(mySemaphoreKey, LED_PIN0, 0);//turn of PWM
                 
@@ -352,7 +353,7 @@ int main(void) {
                 myIoHandler.setPinLow(LED_PIN4);
 
                 myTimer0->cleanup(mySemaphoreKey);
-                //mySemaphoreKey = myTimer0->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer0->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 20:
@@ -367,7 +368,7 @@ int main(void) {
                  very bright    not so bright
                  off            off
                 ------------------------------------------------------------ */
-                //mySemaphoreKey = myTimer0->pSemaphore.lock();
+                //mySemaphoreKey = myTimer0->pSemaphore->lock();
 
                 prescaler = PRESCALER64;
                 myTimer0->setPrescaler(mySemaphoreKey, prescaler);
@@ -392,7 +393,7 @@ int main(void) {
                 myIoHandler.setPinLow(LED_PIN0);
                 myIoHandler.setPinLow(LED_PIN1);
                 myTimer0->cleanup(mySemaphoreKey);
-                //mySemaphoreKey = myTimer0->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer0->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 21:
@@ -404,7 +405,7 @@ int main(void) {
                     LED_PIN4 blinks twice, period approx 2 sec
                     all three LEDs off
                 ------------------------------------------------------------ */
-                //mySemaphoreKey = myTimer0->pSemaphore.lock();
+                //mySemaphoreKey = myTimer0->pSemaphore->lock();
 
                 overflowInterruptCounter = 0;
                 loopCounter = numberLoopsPerTest;
@@ -439,7 +440,7 @@ int main(void) {
                 //cleaning up
                 cli();
                 myTimer0->cleanup(mySemaphoreKey);
-                //mySemaphoreKey = myTimer0->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer0->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 22:
@@ -451,7 +452,7 @@ int main(void) {
                  LED_PIN0 dimmed for approx. 5x2 sec. LED may not turn off for 2 sec
                  LED_PIN0 off
                 ------------------------------------------------------------ */
-                //mySemaphoreKey = myTimer0->pSemaphore.lock();
+                //mySemaphoreKey = myTimer0->pSemaphore->lock();
 
                 clockPrescaler_t prescalerArray[] = {PRESCALER1,
                     PRESCALER8,
@@ -461,8 +462,12 @@ int main(void) {
 
                 loopCounter = sizeof (prescalerArray) / sizeof (uint8_t);
 
-                myTimer0->setDutyCycle(mySemaphoreKey, LED_PIN0, 50);
+                myTimer0->setDutyCycle(mySemaphoreKey, LED_PIN0, 0);
                 myTimer0->configPwm(mySemaphoreKey, LED_PIN0);
+                
+                myTimer0->stop(mySemaphoreKey);
+                _delay_ms(1000);
+                myTimer0->setDutyCycle(mySemaphoreKey, LED_PIN0, 50);
 
                 while (loopCounter) {
                     myTimer0->setPrescaler(mySemaphoreKey, prescalerArray[loopCounter]);
@@ -476,7 +481,7 @@ int main(void) {
                 //cleaning up
                 cli();
                 myTimer0->cleanup(mySemaphoreKey);
-                //mySemaphoreKey = myTimer0->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer0->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 30:
@@ -493,7 +498,7 @@ int main(void) {
                   led blinks twice, period approx. 3 sec
                   led off
                 ------------------------------------------------------------ */
-                mySemaphoreKey = myTimer1->pSemaphore.lock();
+                //mySemaphoreKey = myTimer1->pSemaphore->lock();
 
                 compareMatchInterruptCounter = 0;
                 loopCounter = numberLoopsPerTest;
@@ -520,7 +525,7 @@ int main(void) {
                 myTimer1->stop(mySemaphoreKey);
                 myIoHandler.setPinLow(LED_PIN0);
                 myTimer1->cleanup(mySemaphoreKey);
-                mySemaphoreKey = myTimer1->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer1->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 31:
@@ -533,7 +538,7 @@ int main(void) {
                   led blinks twice, period approx. 2 sec
                   led off
                 ------------------------------------------------------------ */
-                mySemaphoreKey = myTimer1->pSemaphore.lock();
+                //mySemaphoreKey = myTimer1->pSemaphore->lock();
 
                 prescaler = PRESCALER1024;
                 myTimer1->setPrescaler(mySemaphoreKey, prescaler);
@@ -560,7 +565,7 @@ int main(void) {
                 myTimer1->stop(mySemaphoreKey);
                 myIoHandler.setPinLow(LED_PIN0);
                 myTimer1->cleanup(mySemaphoreKey);
-                mySemaphoreKey = myTimer1->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer1->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 32:
@@ -573,7 +578,7 @@ int main(void) {
                   led blinks twice, period approx. 0,75 sec
                   led off
                 ------------------------------------------------------------ */
-                mySemaphoreKey = myTimer1->pSemaphore.lock();
+                //mySemaphoreKey = myTimer1->pSemaphore->lock();
                 compareMatchInterruptCounter = 0;
                 loopCounter = numberLoopsPerTest;
                 prescaler = PRESCALER256;
@@ -598,7 +603,7 @@ int main(void) {
                 myTimer1->stop(mySemaphoreKey);
                 myIoHandler.setPinLow(LED_PIN0);
                 myTimer1->cleanup(mySemaphoreKey);
-                mySemaphoreKey = myTimer1->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer1->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 33:
@@ -612,7 +617,7 @@ int main(void) {
                     led on for approx. 3 sec
                     led off
                 ------------------------------------------------------------ */
-                mySemaphoreKey = myTimer1->pSemaphore.lock();
+                //mySemaphoreKey = myTimer1->pSemaphore->lock();
 
                 compareMatchInterruptCounter = 0;
                 loopCounter = numberLoopsPerTest;
@@ -645,7 +650,7 @@ int main(void) {
                 myTimer1->stop(mySemaphoreKey);
                 myIoHandler.setPinLow(LED_PIN0);
                 myTimer1->cleanup(mySemaphoreKey);
-                mySemaphoreKey = myTimer1->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer1->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 40:
@@ -657,7 +662,7 @@ int main(void) {
                  LED blinks twice period approx. 2 sec
                  LED off  
                 ------------------------------------------------------------ */
-                mySemaphoreKey = myTimer1->pSemaphore.lock();
+                //mySemaphoreKey = myTimer1->pSemaphore->lock();
 
                 overflowInterruptCounter = 0;
 
@@ -685,7 +690,7 @@ int main(void) {
                 myTimer1->stop(mySemaphoreKey);
                 myIoHandler.setPinLow(LED_PIN0);
                 myTimer1->cleanup(mySemaphoreKey);
-                mySemaphoreKey = myTimer1->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer1->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 50:
@@ -700,7 +705,7 @@ int main(void) {
                  very bright    not so bright
                  off            off
                 ------------------------------------------------------------ */
-                mySemaphoreKey = myTimer1->pSemaphore.lock();
+                //mySemaphoreKey = myTimer1->pSemaphore->lock();
 
                 prescaler = PRESCALER64;
                 myTimer1->setPrescaler(mySemaphoreKey, prescaler);
@@ -725,7 +730,7 @@ int main(void) {
                 myIoHandler.setPinLow(LED_PIN4);
                 myIoHandler.setPinLow(LED_PIN1);
                 myTimer1->cleanup(mySemaphoreKey);
-                mySemaphoreKey = myTimer1->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer1->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 51:
@@ -737,7 +742,7 @@ int main(void) {
                     LED_PIN0 blinks twice, period approx 2 sec
                     all three LEDs off
                 ------------------------------------------------------------ */
-                mySemaphoreKey = myTimer1->pSemaphore.lock();
+                //mySemaphoreKey = myTimer1->pSemaphore->lock();
 
                 overflowInterruptCounter = 0;
                 loopCounter = numberLoopsPerTest;
@@ -771,7 +776,7 @@ int main(void) {
                 myIoHandler.setPinLow(LED_PIN1);
                 myIoHandler.setPinLow(LED_PIN4);
                 myTimer1->cleanup(mySemaphoreKey);
-                mySemaphoreKey = myTimer1->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer1->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 52:
@@ -784,7 +789,7 @@ int main(void) {
                  blinks fast
                  blinks even faster
                 ------------------------------------------------------------ */
-                mySemaphoreKey = myTimer1->pSemaphore.lock();
+                //mySemaphoreKey = myTimer1->pSemaphore->lock();
 
                 loopCounter = numberLoopsPerTest;
 
@@ -809,8 +814,7 @@ int main(void) {
                 //cleaning up
                 myTimer1->stop(mySemaphoreKey);
                 myTimer1->cleanup(mySemaphoreKey);
-                myIoHandler.setPinLow(LED_PIN4);
-                mySemaphoreKey = myTimer1->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer1->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
             case 53:
@@ -818,7 +822,7 @@ int main(void) {
                 /*------------------------------------------------------------
                 53. PWM test all prescalers
                 expected behaviour: 
-                 LED_PIN4 off
+                 LED_PIN4 off -> LED doesn't turn of. No clue why...
                  LED_PIN4 dimmed for approx. 2x15 sec. LED may not turn off
                  LED_PIN4 off
                  
@@ -828,7 +832,7 @@ int main(void) {
                  this test is not testing, if the prescalers are implemented correctly
                  it only shows, that a presacler is found in the switch case. 
                 ------------------------------------------------------------ */
-                mySemaphoreKey = myTimer1->pSemaphore.lock();
+                //mySemaphoreKey = myTimer1->pSemaphore->lock();
 
                 clockPrescaler_t prescalerArray[] = {PRESCALER1,
                     PRESCALER2,
@@ -848,9 +852,13 @@ int main(void) {
 
                 loopCounter = sizeof (prescalerArray) / sizeof (uint8_t);
 
-                myTimer1->setDutyCycle(mySemaphoreKey, LED_PIN4, 50);
+                myTimer1->setDutyCycle(mySemaphoreKey, LED_PIN4, 0);//Not working
                 myTimer1->configPwm(mySemaphoreKey, LED_PIN4);
-
+                
+                myTimer1->stop(mySemaphoreKey);//Not working
+                
+                myTimer1->setDutyCycle(mySemaphoreKey, LED_PIN4, 50);
+                
                 while (loopCounter) {
                     myTimer1->setPrescaler(mySemaphoreKey, prescalerArray[loopCounter]);
                     _delay_ms(2000);
@@ -864,7 +872,7 @@ int main(void) {
                 //cleaning up
                 cli();
                 myTimer1->cleanup(mySemaphoreKey);
-                mySemaphoreKey = myTimer1->pSemaphore.unlock(mySemaphoreKey);
+                //mySemaphoreKey = myTimer1->pSemaphore->unlock(mySemaphoreKey);
                 break;
             }
 

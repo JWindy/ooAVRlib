@@ -15,7 +15,7 @@ Description:    Hardware proxy to configure, setup, poll and cleanup the timer
                         - period for timer0 is determined by prescaler and duty cycle 
                         - period for timer1 is determined by prescaler, duty cycle and period
                         - can't be used in parallel to compare match mode
-                        - the frequency for every prescaler has not been verified.
+                        - the frequency of every prescaler has not been verified.
                     - PWM and overflow mode in parallel
                         - anything mentioned on PWM above applies for this mode as well
                         - overflow mode:
@@ -38,7 +38,7 @@ Description:    Hardware proxy to configure, setup, poll and cleanup the timer
 Author:         Johannes Windmiller
 
 Dependencies:   either timer0 or timer1 , check #include for required libraries
-                PWM is hard coded to toggle PB0 and/or PB1 and/or PB4. 
+                PWM is bound by hardware to PB0 and/or PB1 and/or PB4. 
                 Compare match timer0 depends on OCR0A or OCR0B, 
                 compare match timer1 on (OCR1A or OCR1B) and OCR1C.
  
@@ -61,13 +61,6 @@ Copyright:      see LICENSE_software.md in GitHub root folder
 
 #include <avr/io.h>
 #include "libUtility.h"	//v0.2
-
-//ToDo
-// can the number of users be handeled by the Ctor? -> pass in initialisation?
-//test different optimization levels
-
-//Backlog
-//  implement error handling for undefined prescaler
 
 //timer 1 offers many more prescalers than timer 0. 
 //The available timer0 prescalers are highlighted
@@ -176,7 +169,7 @@ public:
     //Starts the timer.
     void configPwm(uint8_t argSemaphoreKey, uint8_t argPin);
 
-    static Semaphore pSemaphore;
+    Semaphore* pSemaphore;
     
 private:
     TimerImpl(void);
@@ -191,7 +184,7 @@ private:
 
     //allows the initialisation function to access the Ctor
     template <muc_t initMUC, timer_type initTimer>
-    friend void instansiateObject(char []);
+    friend void instansiateObject(char [], uint8_t);
 
     ver_t version;
     status_t timerState;
@@ -205,10 +198,12 @@ private:
 }; //TimerImpl
 
 template <muc_t initMUC, timer_type initTIMER>
-void instansiateObject(char buffer[]){
+void instansiateObject(char buffer[], uint8_t argNumberOfUsers){
     TimerImpl<initMUC, initTIMER>* tmp = reinterpret_cast<TimerImpl<initMUC, initTIMER>*>(buffer);
     *tmp = TimerImpl<initMUC, initTIMER>();
     tmp->timerState = READY_STATE;
+
+    *tmp->pSemaphore = Semaphore(argNumberOfUsers);
 }
 
 }//namespace nsTimerImpl
@@ -222,9 +217,9 @@ class TimerSingleton{
         //Calling initialise ensures that the object exists uppon usage. Otherwise
         //undevined behavious might occure, since the compiler can move the 
         //instantiation to a later point in time.
-        static void initialise(void){
+        static void initialise(uint8_t argNumberOfUsers){
             if (refCount == 0){
-                nsTimerImpl::instansiateObject<MUC, TIMER>(buffer);
+                nsTimerImpl::instansiateObject<MUC, TIMER>(buffer, argNumberOfUsers);
                 refCount = 1;
                 }
         }

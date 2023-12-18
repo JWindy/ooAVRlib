@@ -3,9 +3,6 @@
 
 #include "libTimer.h"
 
-template <muc_t MUC, timer_type TIMER>
-Semaphore nsTimerImpl::TimerImpl<MUC, TIMER>::pSemaphore = Semaphore(1); //initialised as mutex
-
 namespace nsTimerImpl {
 
     //--------------------------------------------------------------------------
@@ -33,7 +30,7 @@ namespace nsTimerImpl {
 
     template <muc_t MUC, timer_type TIMER>
     void nsTimerImpl::TimerImpl<MUC, TIMER>::setPrescaler(uint8_t argSemaphoreKey, clockPrescaler_t argPrescaler) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             prescaler = argPrescaler;
             if (timerState == BUSSY_STATE) {//update register only, when allready running. Otherwise timer will be started
                 setPrescalerRegister();
@@ -46,7 +43,7 @@ namespace nsTimerImpl {
 
     template <muc_t MUC, timer_type TIMER>
     void nsTimerImpl::TimerImpl<MUC, TIMER>::start(uint8_t argSemaphoreKey) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             timerState = BUSSY_STATE;
             reset(argSemaphoreKey);
             setPrescalerRegister();
@@ -58,7 +55,7 @@ namespace nsTimerImpl {
 
     template <muc_t MUC, timer_type TIMER>
     void nsTimerImpl::TimerImpl<MUC, TIMER>::configPwmAndTimerOverflow(uint8_t argSemaphoreKey, uint8_t argPin) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             configPwm(argSemaphoreKey, argPin);
             activateOverflowInterrupt(argSemaphoreKey);
         }
@@ -83,13 +80,15 @@ namespace nsTimerImpl {
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER0>::activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
         //sei() musst be called by the user/application
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             if (argOcrSelect == OCR_A) {
                 TIMSK |= (1 << OCIE0A);
                 TIMSK &= ~(1 << OCIE0B);
             } else if (argOcrSelect == OCR_B) {
                 TIMSK |= (1 << OCIE0B);
                 TIMSK &= ~(1 << OCIE0A);
+            } else {
+                timerState = ERROR_STATE;
             }
         }
     }
@@ -97,38 +96,42 @@ namespace nsTimerImpl {
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER0>::deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
         //        cli() musst be called by user/application
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             if (argOcrSelect == OCR_A) {
                 TIMSK &= ~(1 << OCIE0A);
             } else if (argOcrSelect == OCR_B) {
                 TIMSK &= ~(1 << OCIE0B);
+            } else {
+                timerState = ERROR_STATE;
             }
         }
     }
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER0>::activateOverflowInterrupt(uint8_t argSemaphoreKey) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             TIMSK |= (1 << TOIE0);
         }
     }
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER0>::deactivateOverflowInterrupt(uint8_t argSemaphoreKey) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             TIMSK &= ~(1 << TOIE0);
         }
     }
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER0>::setOutputCompareMatchValue(uint8_t argSemaphoreKey, ocr_t argOcrSelect, uint8_t argOcrValue) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             if (argOcrSelect == OCR_A) {
                 outputCompareMatchValueA = argOcrValue;
                 OCR0A = outputCompareMatchValueA;
             } else if (argOcrSelect == OCR_B) {
                 outputCompareMatchValueB = argOcrValue;
                 OCR0B = outputCompareMatchValueB;
+            } else {
+                timerState = ERROR_STATE;
             }
             activateOutputCompareMatchInterrupt(argSemaphoreKey, argOcrSelect);
         }
@@ -136,7 +139,7 @@ namespace nsTimerImpl {
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER0>::setPeriod(uint8_t argSemaphoreKey, uint8_t argPeriod) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {//period can't be changed for timer0
+        if (pSemaphore->checkKey(argSemaphoreKey)) {//period can't be changed for timer0
             period = argPeriod;
             timerState = ERROR_STATE; //ToDo implement error handling
         }
@@ -144,22 +147,25 @@ namespace nsTimerImpl {
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER0>::setDutyCycle(uint8_t argSemaphoreKey, uint8_t argPin, uint8_t argDutyCycle) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             if (argDutyCycle > 100)
                 dutyCycle = 100;
             else
                 dutyCycle = argDutyCycle;
-            if (argPin == PB0)
+            if (argPin == PB0) {
                 OCR0A = calculateDutyCycleRegisterValue(255);
-            else if (argPin == PB1)
+            } else if (argPin == PB1) {
                 OCR0B = calculateDutyCycleRegisterValue(255);
+            } else {
+                timerState = ERROR_STATE;
+            }
         }
     }
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER0>::stop(uint8_t argSemaphoreKey) {
         //data sheet p 80
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             timerState = IDLE_STATE;
             TCCR0B &= ~((1 << CS02) | (1 << CS01) | (1 << CS00));
         }
@@ -167,13 +173,13 @@ namespace nsTimerImpl {
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER0>::reset(uint8_t argSemaphoreKey) {
-        if (pSemaphore.checkKey(argSemaphoreKey))
+        if (pSemaphore->checkKey(argSemaphoreKey))
             TCNT0 = 0x00; //reset counter register data sheet p 80
     }
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER0>::cleanup(uint8_t argSemaphoreKey) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             stop(argSemaphoreKey);
             reset(argSemaphoreKey);
             TCCR0A = 0x00; //reset timer control register data sheet p 80
@@ -186,7 +192,7 @@ namespace nsTimerImpl {
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER0>::configTimerCompareMatch(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             if (timerState == BUSSY_STATE) {
                 stop(argSemaphoreKey);
                 reset(argSemaphoreKey);
@@ -195,6 +201,8 @@ namespace nsTimerImpl {
                 OCR0A = outputCompareMatchValueA;
             } else if (argOcrSelect == OCR_B) {
                 OCR0B = outputCompareMatchValueB;
+            } else {
+                timerState = ERROR_STATE;
             }
 
             //CTC mode data sheet p 79
@@ -211,7 +219,7 @@ namespace nsTimerImpl {
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER0>::configPwm(uint8_t argSemaphoreKey, uint8_t argPin) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             if (timerState == BUSSY_STATE) {
                 stop(argSemaphoreKey);
                 reset(argSemaphoreKey);
@@ -230,6 +238,8 @@ namespace nsTimerImpl {
             } else if (argPin == PB1) {
                 TCCR0A |= (1 << COM0B1);
                 TCCR0A &= ~(1 << COM0B0);
+            } else {
+                timerState = ERROR_STATE;
             }
 
             //no compare match interrupt required
@@ -277,13 +287,15 @@ namespace nsTimerImpl {
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER1>::activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
         //sei() musst be called by the user/application
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             if (argOcrSelect == OCR_A) {
                 TIMSK |= (1 << OCIE1A);
                 TIMSK &= ~(1 << OCIE1B);
             } else if (argOcrSelect == OCR_B) {
                 TIMSK |= (1 << OCIE1B);
                 TIMSK &= ~(1 << OCIE1A);
+            } else {
+                timerState = ERROR_STATE;
             }
         }
     }
@@ -291,32 +303,34 @@ namespace nsTimerImpl {
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER1>::deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
         //        cli() musst be called by user/application
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             if (argOcrSelect == OCR_A) {
                 TIMSK &= ~(1 << OCIE1A);
             } else if (argOcrSelect == OCR_B) {
                 TIMSK &= ~(1 << OCIE1B);
+            } else {
+                timerState = ERROR_STATE;
             }
         }
     }
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER1>::activateOverflowInterrupt(uint8_t argSemaphoreKey) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             TIMSK |= (1 << TOIE1);
         }
     }
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER1>::deactivateOverflowInterrupt(uint8_t argSemaphoreKey) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             TIMSK &= ~(1 << TOIE1);
         }
     }
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER1>::setOutputCompareMatchValue(uint8_t argSemaphoreKey, ocr_t argOcrSelect, uint8_t argOcrValue) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             if (argOcrSelect == OCR_A) {
                 outputCompareMatchValueA = argOcrValue;
                 OCR1A = outputCompareMatchValueA;
@@ -325,6 +339,8 @@ namespace nsTimerImpl {
                 outputCompareMatchValueB = argOcrValue;
                 OCR1B = outputCompareMatchValueB;
                 OCR1C = outputCompareMatchValueB;
+            } else {
+                timerState = ERROR_STATE;
             }
             activateOutputCompareMatchInterrupt(argSemaphoreKey, argOcrSelect);
         }
@@ -332,7 +348,7 @@ namespace nsTimerImpl {
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER1>::setPeriod(uint8_t argSemaphoreKey, uint8_t argPeriod) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             period = argPeriod;
             OCR1C = period;
         }
@@ -340,22 +356,25 @@ namespace nsTimerImpl {
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER1>::setDutyCycle(uint8_t argSemaphoreKey, uint8_t argPin, uint8_t argDutyCycle) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             if (argDutyCycle > 100)
                 dutyCycle = 100;
             else
                 dutyCycle = argDutyCycle;
-            if (argPin == PB1)
+            if (argPin == PB1) {
                 OCR1A = calculateDutyCycleRegisterValue(period);
-            else if (argPin == PB4)
+            } else if (argPin == PB4) {
                 OCR1B = calculateDutyCycleRegisterValue(period);
+            } else {
+                timerState = ERROR_STATE;
+            }
         }
     }
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER1>::stop(uint8_t argSemaphoreKey) {
         //data sheet p 80
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             timerState = IDLE_STATE;
             TCCR1 &= ~((1 << CS13) | (1 << CS12) | (1 << CS11) | (1 << CS10));
         }
@@ -363,13 +382,13 @@ namespace nsTimerImpl {
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER1>::reset(uint8_t argSemaphoreKey) {
-        if (pSemaphore.checkKey(argSemaphoreKey))
+        if (pSemaphore->checkKey(argSemaphoreKey))
             TCNT1 = 0x00; //reset counter register data sheet p 80
     }
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER1>::cleanup(uint8_t argSemaphoreKey) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             stop(argSemaphoreKey);
             reset(argSemaphoreKey);
             TCCR1 = 0x00; //reset timer control register data sheet p 80
@@ -381,7 +400,7 @@ namespace nsTimerImpl {
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER1>::configTimerCompareMatch(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             if (timerState == BUSSY_STATE) {
                 stop(argSemaphoreKey);
                 reset(argSemaphoreKey);
@@ -392,6 +411,8 @@ namespace nsTimerImpl {
             } else if (argOcrSelect == OCR_B) {
                 OCR1C = outputCompareMatchValueB;
                 OCR1B = outputCompareMatchValueB;
+            } else {
+                timerState = ERROR_STATE;
             }
 
             //CTC mode data sheet p 89
@@ -408,7 +429,7 @@ namespace nsTimerImpl {
 
     template<>
     void nsTimerImpl::TimerImpl<ATTINYX5, TIMER1>::configPwm(uint8_t argSemaphoreKey, uint8_t argPin) {
-        if (pSemaphore.checkKey(argSemaphoreKey)) {
+        if (pSemaphore->checkKey(argSemaphoreKey)) {
             if (timerState == BUSSY_STATE) {
                 stop(argSemaphoreKey);
                 reset(argSemaphoreKey);
@@ -428,6 +449,8 @@ namespace nsTimerImpl {
                 //clear output pin on compare match, set at bottom -> datasheet p 78
                 GTCCR |= (1 << COM1B1);
                 GTCCR &= ~(1 << COM1B0);
+            } else {
+                timerState = ERROR_STATE;
             }
             //no compare match interrupt required
             TIMSK &= ~((1 << OCIE0A) | (1 << OCIE0B));
