@@ -22,7 +22,6 @@
 #include "ioMapAttiny85LEDDebuggingBoard.h"
 
 volatile uint8_t compareMatchInterruptCounter = 0; //global variable for ISR
-//volatile uint8_t compareMatchInterruptCounter = 0; //global variable for ISR
 volatile uint16_t overflowInterruptCounter = 0; //global variable for ISR
 
 //timer0 compare A match interrupt 
@@ -76,8 +75,6 @@ int main(void) {
     Timer0Attiny85::initialise(numberOfUser);
     Timer1Attiny85::initialise(numberOfUser);
 
-//    timer0Attiny85_t* myTimer0 = Timer0Attiny85::getInstance();
-//    timer1Attiny85_t* myTimer1 = Timer1Attiny85::getInstance();
     auto myTimer0 = Timer0Attiny85::getInstance();
     auto myTimer1 = Timer1Attiny85::getInstance();
 
@@ -137,13 +134,13 @@ int main(void) {
     //select test cases
 
     //all test cases
-//    uint8_t testCaseArray[] = {1, 2, 3, 4, //timer0 compare match
-//        10, //timer0 overflow
-//        20, 21, 22, //timer0 PWM
-//        30, 31, 32, 33, 34, //timer1 compare match
-//        40, //timer1 overflow
-//        50, 51, 52, 53}; //timer1 PWM
-        uint8_t testCaseArray[] = {52, 53}; 
+    uint8_t testCaseArray[] = {1, 2, 3, 4, //timer0 compare match
+        10, //timer0 overflow
+        20, 21, 22, //timer0 PWM
+        30, 31, 32, 33, 34, //timer1 compare match
+        40, //timer1 overflow
+        50, 51, 52, 53}; //timer1 PWM
+//        uint8_t testCaseArray[] = {52, 53}; 
 
     uint8_t numberOfTestCases = sizeof (testCaseArray) / sizeof (uint8_t);
     uint8_t testCaseCounter = 0;
