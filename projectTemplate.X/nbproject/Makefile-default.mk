@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=projectTemplate.cpp projectTemplateTest.cpp
+SOURCEFILES_QUOTED_IF_SPACED=projectTemplate.cpp projectTemplateTest.cpp singletonTemplate.cpp singletonTemplateTest.cpp
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/projectTemplate.o ${OBJECTDIR}/projectTemplateTest.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/projectTemplate.o.d ${OBJECTDIR}/projectTemplateTest.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/projectTemplate.o ${OBJECTDIR}/projectTemplateTest.o ${OBJECTDIR}/singletonTemplate.o ${OBJECTDIR}/singletonTemplateTest.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/projectTemplate.o.d ${OBJECTDIR}/projectTemplateTest.o.d ${OBJECTDIR}/singletonTemplate.o.d ${OBJECTDIR}/singletonTemplateTest.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/projectTemplate.o ${OBJECTDIR}/projectTemplateTest.o
+OBJECTFILES=${OBJECTDIR}/projectTemplate.o ${OBJECTDIR}/projectTemplateTest.o ${OBJECTDIR}/singletonTemplate.o ${OBJECTDIR}/singletonTemplateTest.o
 
 # Source Files
-SOURCEFILES=projectTemplate.cpp projectTemplateTest.cpp
+SOURCEFILES=projectTemplate.cpp projectTemplateTest.cpp singletonTemplate.cpp singletonTemplateTest.cpp
 
 # Pack Options 
 PACK_COMPILER_OPTIONS=-I "${DFP_DIR}/include"
@@ -128,6 +128,18 @@ ${OBJECTDIR}/projectTemplateTest.o: projectTemplateTest.cpp  .generated_files/fl
 	@${RM} ${OBJECTDIR}/projectTemplateTest.o 
 	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/projectTemplateTest.o.d" -MT "${OBJECTDIR}/projectTemplateTest.o.d" -MT ${OBJECTDIR}/projectTemplateTest.o  -o ${OBJECTDIR}/projectTemplateTest.o projectTemplateTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
+${OBJECTDIR}/singletonTemplate.o: singletonTemplate.cpp  .generated_files/flags/default/96e0a189749889b88cdb19da73a271334453c6ea .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/singletonTemplate.o.d 
+	@${RM} ${OBJECTDIR}/singletonTemplate.o 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/singletonTemplate.o.d" -MT "${OBJECTDIR}/singletonTemplate.o.d" -MT ${OBJECTDIR}/singletonTemplate.o  -o ${OBJECTDIR}/singletonTemplate.o singletonTemplate.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	
+${OBJECTDIR}/singletonTemplateTest.o: singletonTemplateTest.cpp  .generated_files/flags/default/e739ea53aaa666ec568826bfe48d581fc4c8e72c .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/singletonTemplateTest.o.d 
+	@${RM} ${OBJECTDIR}/singletonTemplateTest.o 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/singletonTemplateTest.o.d" -MT "${OBJECTDIR}/singletonTemplateTest.o.d" -MT ${OBJECTDIR}/singletonTemplateTest.o  -o ${OBJECTDIR}/singletonTemplateTest.o singletonTemplateTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	
 else
 ${OBJECTDIR}/projectTemplate.o: projectTemplate.cpp  .generated_files/flags/default/7d849f756c53a73071d65e1f8dc47bb131c23bc .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
@@ -140,6 +152,18 @@ ${OBJECTDIR}/projectTemplateTest.o: projectTemplateTest.cpp  .generated_files/fl
 	@${RM} ${OBJECTDIR}/projectTemplateTest.o.d 
 	@${RM} ${OBJECTDIR}/projectTemplateTest.o 
 	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/projectTemplateTest.o.d" -MT "${OBJECTDIR}/projectTemplateTest.o.d" -MT ${OBJECTDIR}/projectTemplateTest.o  -o ${OBJECTDIR}/projectTemplateTest.o projectTemplateTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	
+${OBJECTDIR}/singletonTemplate.o: singletonTemplate.cpp  .generated_files/flags/default/c118e2ae610a254a29396b807c3f10c3c7d70336 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/singletonTemplate.o.d 
+	@${RM} ${OBJECTDIR}/singletonTemplate.o 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/singletonTemplate.o.d" -MT "${OBJECTDIR}/singletonTemplate.o.d" -MT ${OBJECTDIR}/singletonTemplate.o  -o ${OBJECTDIR}/singletonTemplate.o singletonTemplate.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	
+${OBJECTDIR}/singletonTemplateTest.o: singletonTemplateTest.cpp  .generated_files/flags/default/25e9ab26d76e259c5ba2183dddd02d37e2b9e8db .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/singletonTemplateTest.o.d 
+	@${RM} ${OBJECTDIR}/singletonTemplateTest.o 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/singletonTemplateTest.o.d" -MT "${OBJECTDIR}/singletonTemplateTest.o.d" -MT ${OBJECTDIR}/singletonTemplateTest.o  -o ${OBJECTDIR}/singletonTemplateTest.o singletonTemplateTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
 	
 endif
 
