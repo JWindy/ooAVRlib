@@ -22,7 +22,7 @@
 
 int main(void){
     
-    libIOHandler myIoHandler;
+    IOHandler myIoHandler;
     
     const uint16_t delayLong = 1000;
     const uint16_t delayShort = 500;
