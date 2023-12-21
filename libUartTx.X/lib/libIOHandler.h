@@ -20,11 +20,11 @@
 #define	LIBIOHANDLER_H
 
 #include <avr/io.h>
-#include "libUtility.h" //v0.1
+#include "libUtility.h" //v0.2
 
-class libIOHandler{
+class IOHandler{
     public:
-                libIOHandler(void);
+                IOHandler(void);
         
         void    setPinOutput(uint8_t argPin);
         void    setPinHigh(uint8_t argPin);

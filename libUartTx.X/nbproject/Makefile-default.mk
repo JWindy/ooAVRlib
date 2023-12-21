@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=libUartTx.cpp libUartTxTest.cpp
+SOURCEFILES_QUOTED_IF_SPACED=lib/libUtility.cpp libUartTx.cpp libUartTxTest.cpp lib/libTimer.cpp lib/libIOHandler.cpp
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/libUartTx.o ${OBJECTDIR}/libUartTxTest.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/libUartTx.o.d ${OBJECTDIR}/libUartTxTest.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/lib/libUtility.o ${OBJECTDIR}/libUartTx.o ${OBJECTDIR}/libUartTxTest.o ${OBJECTDIR}/lib/libTimer.o ${OBJECTDIR}/lib/libIOHandler.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/lib/libUtility.o.d ${OBJECTDIR}/libUartTx.o.d ${OBJECTDIR}/libUartTxTest.o.d ${OBJECTDIR}/lib/libTimer.o.d ${OBJECTDIR}/lib/libIOHandler.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/libUartTx.o ${OBJECTDIR}/libUartTxTest.o
+OBJECTFILES=${OBJECTDIR}/lib/libUtility.o ${OBJECTDIR}/libUartTx.o ${OBJECTDIR}/libUartTxTest.o ${OBJECTDIR}/lib/libTimer.o ${OBJECTDIR}/lib/libIOHandler.o
 
 # Source Files
-SOURCEFILES=libUartTx.cpp libUartTxTest.cpp
+SOURCEFILES=lib/libUtility.cpp libUartTx.cpp libUartTxTest.cpp lib/libTimer.cpp lib/libIOHandler.cpp
 
 # Pack Options 
 PACK_COMPILER_OPTIONS=-I "${DFP_DIR}/include"
@@ -116,39 +116,75 @@ endif
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: compileCPP
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-${OBJECTDIR}/libUartTx.o: libUartTx.cpp  .generated_files/flags/default/eb77108a764d224dcf228c2a83d618fef286f081 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/lib/libUtility.o: lib/libUtility.cpp  .generated_files/flags/default/4c05b3f0e16a3606f33752bb8b0a6c19e2618260 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+	@${MKDIR} "${OBJECTDIR}/lib" 
+	@${RM} ${OBJECTDIR}/lib/libUtility.o.d 
+	@${RM} ${OBJECTDIR}/lib/libUtility.o 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/lib/libUtility.o.d" -MT "${OBJECTDIR}/lib/libUtility.o.d" -MT ${OBJECTDIR}/lib/libUtility.o  -o ${OBJECTDIR}/lib/libUtility.o lib/libUtility.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -std=c++14
+	
+${OBJECTDIR}/libUartTx.o: libUartTx.cpp  .generated_files/flags/default/b3b78fa674baff34d588a600720ba0ef27c26c11 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/libUartTx.o.d 
 	@${RM} ${OBJECTDIR}/libUartTx.o 
-	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libUartTx.o.d" -MT "${OBJECTDIR}/libUartTx.o.d" -MT ${OBJECTDIR}/libUartTx.o  -o ${OBJECTDIR}/libUartTx.o libUartTx.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libUartTx.o.d" -MT "${OBJECTDIR}/libUartTx.o.d" -MT ${OBJECTDIR}/libUartTx.o  -o ${OBJECTDIR}/libUartTx.o libUartTx.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -std=c++14
 	
-${OBJECTDIR}/libUartTxTest.o: libUartTxTest.cpp  .generated_files/flags/default/d587b1a89c320dcfb3e245a5dfa8f030d435302e .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/libUartTxTest.o: libUartTxTest.cpp  .generated_files/flags/default/4efc193e3d5a1fbe3ac1f376bfafa7bc68dc9bd6 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/libUartTxTest.o.d 
 	@${RM} ${OBJECTDIR}/libUartTxTest.o 
-	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libUartTxTest.o.d" -MT "${OBJECTDIR}/libUartTxTest.o.d" -MT ${OBJECTDIR}/libUartTxTest.o  -o ${OBJECTDIR}/libUartTxTest.o libUartTxTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libUartTxTest.o.d" -MT "${OBJECTDIR}/libUartTxTest.o.d" -MT ${OBJECTDIR}/libUartTxTest.o  -o ${OBJECTDIR}/libUartTxTest.o libUartTxTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -std=c++14
+	
+${OBJECTDIR}/lib/libTimer.o: lib/libTimer.cpp  .generated_files/flags/default/cf9a075e82bcf8bc6d36a7af3085358c94d67e5a .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+	@${MKDIR} "${OBJECTDIR}/lib" 
+	@${RM} ${OBJECTDIR}/lib/libTimer.o.d 
+	@${RM} ${OBJECTDIR}/lib/libTimer.o 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/lib/libTimer.o.d" -MT "${OBJECTDIR}/lib/libTimer.o.d" -MT ${OBJECTDIR}/lib/libTimer.o  -o ${OBJECTDIR}/lib/libTimer.o lib/libTimer.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -std=c++14
+	
+${OBJECTDIR}/lib/libIOHandler.o: lib/libIOHandler.cpp  .generated_files/flags/default/ceb84d47110716e97ca5eaa5790fed28c2141b1 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+	@${MKDIR} "${OBJECTDIR}/lib" 
+	@${RM} ${OBJECTDIR}/lib/libIOHandler.o.d 
+	@${RM} ${OBJECTDIR}/lib/libIOHandler.o 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS} -g -DDEBUG  -gdwarf-2  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/lib/libIOHandler.o.d" -MT "${OBJECTDIR}/lib/libIOHandler.o.d" -MT ${OBJECTDIR}/lib/libIOHandler.o  -o ${OBJECTDIR}/lib/libIOHandler.o lib/libIOHandler.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -std=c++14
 	
 else
-${OBJECTDIR}/libUartTx.o: libUartTx.cpp  .generated_files/flags/default/b13041934b126890f75df27c308dfb67f6f6160a .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/lib/libUtility.o: lib/libUtility.cpp  .generated_files/flags/default/352d84e2b66a5bfe88b043581b645e0e250f685 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+	@${MKDIR} "${OBJECTDIR}/lib" 
+	@${RM} ${OBJECTDIR}/lib/libUtility.o.d 
+	@${RM} ${OBJECTDIR}/lib/libUtility.o 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/lib/libUtility.o.d" -MT "${OBJECTDIR}/lib/libUtility.o.d" -MT ${OBJECTDIR}/lib/libUtility.o  -o ${OBJECTDIR}/lib/libUtility.o lib/libUtility.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -std=c++14
+	
+${OBJECTDIR}/libUartTx.o: libUartTx.cpp  .generated_files/flags/default/d2ece325c740035ea36f3d2925312ff003800663 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/libUartTx.o.d 
 	@${RM} ${OBJECTDIR}/libUartTx.o 
-	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libUartTx.o.d" -MT "${OBJECTDIR}/libUartTx.o.d" -MT ${OBJECTDIR}/libUartTx.o  -o ${OBJECTDIR}/libUartTx.o libUartTx.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libUartTx.o.d" -MT "${OBJECTDIR}/libUartTx.o.d" -MT ${OBJECTDIR}/libUartTx.o  -o ${OBJECTDIR}/libUartTx.o libUartTx.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -std=c++14
 	
-${OBJECTDIR}/libUartTxTest.o: libUartTxTest.cpp  .generated_files/flags/default/b98389441a0788ed0d4b4dfbe44a802f2e6790fd .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+${OBJECTDIR}/libUartTxTest.o: libUartTxTest.cpp  .generated_files/flags/default/27c61c3d9f0b28afd898aa044e79da2ba2f30743 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/libUartTxTest.o.d 
 	@${RM} ${OBJECTDIR}/libUartTxTest.o 
-	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libUartTxTest.o.d" -MT "${OBJECTDIR}/libUartTxTest.o.d" -MT ${OBJECTDIR}/libUartTxTest.o  -o ${OBJECTDIR}/libUartTxTest.o libUartTxTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD) 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/libUartTxTest.o.d" -MT "${OBJECTDIR}/libUartTxTest.o.d" -MT ${OBJECTDIR}/libUartTxTest.o  -o ${OBJECTDIR}/libUartTxTest.o libUartTxTest.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -std=c++14
+	
+${OBJECTDIR}/lib/libTimer.o: lib/libTimer.cpp  .generated_files/flags/default/c7c02b73679d7401c0a2210de72dce8d31fbaee7 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+	@${MKDIR} "${OBJECTDIR}/lib" 
+	@${RM} ${OBJECTDIR}/lib/libTimer.o.d 
+	@${RM} ${OBJECTDIR}/lib/libTimer.o 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/lib/libTimer.o.d" -MT "${OBJECTDIR}/lib/libTimer.o.d" -MT ${OBJECTDIR}/lib/libTimer.o  -o ${OBJECTDIR}/lib/libTimer.o lib/libTimer.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -std=c++14
+	
+${OBJECTDIR}/lib/libIOHandler.o: lib/libIOHandler.cpp  .generated_files/flags/default/87b4dd6a9b998a98f930ed24c34ad6244152dc21 .generated_files/flags/default/fe4041e053f0de6728714b4d2a84c3b830905bb7
+	@${MKDIR} "${OBJECTDIR}/lib" 
+	@${RM} ${OBJECTDIR}/lib/libIOHandler.o.d 
+	@${RM} ${OBJECTDIR}/lib/libIOHandler.o 
+	 ${MP_CPPC} $(MP_EXTRA_CC_PRE) -mmcu=attiny85 ${PACK_COMPILER_OPTIONS} ${PACK_COMMON_OPTIONS}  -x c++ -c -D__$(MP_PROCESSOR_OPTION)__  -I"lib" -funsigned-char -funsigned-bitfields -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -DBAUD=9600 -DF_CPU=8000000 -Wall -MD -MP -MF "${OBJECTDIR}/lib/libIOHandler.o.d" -MT "${OBJECTDIR}/lib/libIOHandler.o.d" -MT ${OBJECTDIR}/lib/libIOHandler.o  -o ${OBJECTDIR}/lib/libIOHandler.o lib/libIOHandler.cpp  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -std=c++14
 	
 endif
 
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: link
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk  lib/libIOHandler.cpp lib/libIOHandler.h  
+${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk    
 	@${MKDIR} ${DISTDIR} 
-	${MP_CPPC} $(MP_EXTRA_LD_PRE) -mmcu=attiny85 ${PACK_COMMON_OPTIONS}   -gdwarf-2 -D__$(MP_PROCESSOR_OPTION)__  -Wl,-Map="${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.map"    -o ${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}    lib/libIOHandler.cpp lib/libIOHandler.h  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION),--defsym=__ICD2RAM=1,--defsym=__MPLAB_DEBUG=1,--defsym=__DEBUG=1 -Wl,--gc-sections -Wl,--start-group  -Wl,-lm -Wl,--end-group 
+	${MP_CPPC} $(MP_EXTRA_LD_PRE) -mmcu=attiny85 ${PACK_COMMON_OPTIONS}   -gdwarf-2 -D__$(MP_PROCESSOR_OPTION)__  -Wl,-Map="${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.map"    -o ${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}      -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION),--defsym=__ICD2RAM=1,--defsym=__MPLAB_DEBUG=1,--defsym=__DEBUG=1 -Wl,--gc-sections -Wl,--start-group  -Wl,-lm -Wl,--end-group 
 	
 	
 	
@@ -156,9 +192,9 @@ ${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject
 	
 	
 else
-${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk  lib/libIOHandler.cpp lib/libIOHandler.h 
+${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
 	@${MKDIR} ${DISTDIR} 
-	${MP_CPPC} $(MP_EXTRA_LD_PRE) -mmcu=attiny85 ${PACK_COMMON_OPTIONS}  -D__$(MP_PROCESSOR_OPTION)__  -Wl,-Map="${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.map"    -o ${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}    lib/libIOHandler.cpp lib/libIOHandler.h  -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION) -Wl,--gc-sections -Wl,--start-group  -Wl,-lm -Wl,--end-group 
+	${MP_CPPC} $(MP_EXTRA_LD_PRE) -mmcu=attiny85 ${PACK_COMMON_OPTIONS}  -D__$(MP_PROCESSOR_OPTION)__  -Wl,-Map="${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.map"    -o ${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}      -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION) -Wl,--gc-sections -Wl,--start-group  -Wl,-lm -Wl,--end-group 
 	${MP_CC_DIR}/avr-objcopy -O ihex "${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX}" "${DISTDIR}/libUartTx.X.${IMAGE_TYPE}.hex"
 	
 	

@@ -3,39 +3,34 @@
 
 #include "libIOHandler.h"
 
-libIOHandler::libIOHandler(void){
+IOHandler::IOHandler(void){
     version.major = 0;
     version.minor = 1;
 }
 
-ver_t libIOHandler::getVersion(void){
+ver_t IOHandler::getVersion(void){
     return version;
 }
 
-void libIOHandler::setPinOutput(uint8_t argPin){
+void IOHandler::setPinOutput(uint8_t argPin){
     uint8_t ddrPin = getDdr(argPin);   
     DDRB |= (1 << ddrPin);
     setPinLow(argPin);
 }
       
-void libIOHandler::setPinHigh(uint8_t argPin){
+void IOHandler::setPinHigh(uint8_t argPin){
     PORTB |= (1 << argPin); 
 }
 
-void libIOHandler::setPinLow(uint8_t argPin){
+void IOHandler::setPinLow(uint8_t argPin){
     PORTB &= ~(1 << argPin); 
 }
 
-void libIOHandler::togglePin(uint8_t argPin){
-    if(readPinRaw(argPin)){
-        setPinLow(argPin);
-    }
-    else{
-        setPinHigh(argPin);
-    }
+void IOHandler::togglePin(uint8_t argPin){
+    PORTB ^= (1 << argPin); 
 }
 
-void libIOHandler::setPinInput(uint8_t argPin, uint8_t argPullUp){
+void IOHandler::setPinInput(uint8_t argPin, uint8_t argPullUp){
     uint8_t ddrPin = getDdr(argPin);
     
     DDRB &= ~(1 << ddrPin);
@@ -48,7 +43,7 @@ void libIOHandler::setPinInput(uint8_t argPin, uint8_t argPullUp){
     }
 }
 
-uint8_t libIOHandler::readPinRaw(uint8_t argPin){
+uint8_t IOHandler::readPinRaw(uint8_t argPin){
     uint8_t pinState = PINB & (1 << argPin);
     return pinState;
 }   
@@ -72,7 +67,7 @@ void disableInterruptOnPin(uint8_t argPin){
     
 } */
 
-uint8_t libIOHandler::getDdr(uint8_t argPin){
+uint8_t IOHandler::getDdr(uint8_t argPin){
     uint8_t ddrPin = 0;
     
     #ifdef __AVR_ATtiny85__
@@ -93,8 +88,8 @@ uint8_t libIOHandler::getDdr(uint8_t argPin){
                 ddrPin    = DDB4; 
                 break;
         }    
-    #elif
-        #error "libIOHandler not implemented for selected MUC."
+    #else
+        #error "IOHandler not implemented for selected MUC."
     #endif
 
     return ddrPin;

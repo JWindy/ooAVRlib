@@ -1,0 +1,3974 @@
+Disassembly Listing for libUartTx
+Generated From:
+/home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libUartTx.X/dist/default/debug/libUartTx.X.debug.elf
+22.11.2023 19:05:53
+
+---  /usr/lib/avr/include/util/delay.h  -----------------------------------------------------------------
+1:             /* Copyright (c) 2002, Marek Michalkiewicz
+2:                Copyright (c) 2004,2005,2007 Joerg Wunsch
+3:                Copyright (c) 2007  Florin-Viorel Petrov
+4:                All rights reserved.
+5:             
+6:                Redistribution and use in source and binary forms, with or without
+7:                modification, are permitted provided that the following conditions are met:
+8:             
+9:                * Redistributions of source code must retain the above copyright
+10:                 notice, this list of conditions and the following disclaimer.
+11:            
+12:               * Redistributions in binary form must reproduce the above copyright
+13:                 notice, this list of conditions and the following disclaimer in
+14:                 the documentation and/or other materials provided with the
+15:                 distribution.
+16:            
+17:               * Neither the name of the copyright holders nor the names of
+18:                 contributors may be used to endorse or promote products derived
+19:                 from this software without specific prior written permission.
+20:            
+21:              THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+22:              AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+23:              IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+24:              ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+25:              LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+26:              CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+27:              SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+28:              INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+29:              CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+30:              ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+31:              POSSIBILITY OF SUCH DAMAGE. */
+32:            
+33:            /* $Id$ */
+34:            
+35:            #ifndef _UTIL_DELAY_H_
+36:            #define _UTIL_DELAY_H_ 1
+37:            
+38:            #ifndef __DOXYGEN__
+39:            #  ifndef __HAS_DELAY_CYCLES
+40:            #    define __HAS_DELAY_CYCLES 1
+41:            #  endif
+42:            #endif  /* __DOXYGEN__ */
+43:            
+44:            #include <inttypes.h>
+45:            #include <util/delay_basic.h>
+46:            #include <math.h>
+47:            
+48:            /** \file */
+49:            /** \defgroup util_delay <util/delay.h>: Convenience functions for busy-wait delay loops
+50:                \code
+51:                #define F_CPU 1000000UL  // 1 MHz
+52:                //#define F_CPU 14.7456E6
+53:                #include <util/delay.h>
+54:                \endcode
+55:            
+56:                \note As an alternative method, it is possible to pass the
+57:                F_CPU macro down to the compiler from the Makefile.
+58:                Obviously, in that case, no \c \#define statement should be
+59:                used.
+60:            
+61:                The functions in this header file are wrappers around the basic
+62:                busy-wait functions from <util/delay_basic.h>.  They are meant as
+63:                convenience functions where actual time values can be specified
+64:                rather than a number of cycles to wait for.  The idea behind is
+65:                that compile-time constant expressions will be eliminated by
+66:                compiler optimization so floating-point expressions can be used
+67:                to calculate the number of delay cycles needed based on the CPU
+68:                frequency passed by the macro F_CPU.
+69:            
+70:                \note In order for these functions to work as intended, compiler
+71:                optimizations <em>must</em> be enabled, and the delay time
+72:                <em>must</em> be an expression that is a known constant at
+73:                compile-time.  If these requirements are not met, the resulting
+74:                delay will be much longer (and basically unpredictable), and
+75:                applications that otherwise do not use floating-point calculations
+76:                will experience severe code bloat by the floating-point library
+77:                routines linked into the application.
+78:            
+79:                The functions available allow the specification of microsecond, and
+80:                millisecond delays directly, using the application-supplied macro
+81:                F_CPU as the CPU clock frequency (in Hertz).
+82:            
+83:            */
+84:            
+85:            #if !defined(__DOXYGEN__)
+86:            static __inline__ void _delay_us(double __us) __attribute__((__always_inline__));
+87:            static __inline__ void _delay_ms(double __ms) __attribute__((__always_inline__));
+88:            #endif
+89:            
+90:            #ifndef F_CPU
+91:            /* prevent compiler error by supplying a default */
+92:            # warning "F_CPU not defined for <util/delay.h>"
+93:            /** \ingroup util_delay
+94:                \def F_CPU
+95:                \brief CPU frequency in Hz
+96:            
+97:                The macro F_CPU specifies the CPU frequency to be considered by
+98:                the delay macros.  This macro is normally supplied by the
+99:                environment (e.g. from within a project header, or the project's
+100:               Makefile).  The value 1 MHz here is only provided as a "vanilla"
+101:               fallback if no such user-provided definition could be found.
+102:           
+103:               In terms of the delay functions, the CPU frequency can be given as
+104:               a floating-point constant (e.g. 3.6864E6 for 3.6864 MHz).
+105:               However, the macros in <util/setbaud.h> require it to be an
+106:               integer value.
+107:            */
+108:           # define F_CPU 1000000UL
+109:           #endif
+110:           
+111:           #ifndef __OPTIMIZE__
+112:           # warning "Compiler optimizations disabled; functions from <util/delay.h> won't work as designed"
+113:           #endif
+114:           
+115:           #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+116:             !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+117:             __STDC_HOSTED__
+118:           #  include <math.h>
+119:           #endif
+120:           
+121:           /**
+122:              \ingroup util_delay
+123:           
+124:              Perform a delay of \c __ms milliseconds, using _delay_loop_2().
+125:           
+126:              The macro F_CPU is supposed to be defined to a
+127:              constant defining the CPU clock frequency (in Hertz).
+128:           
+129:              The maximal possible delay is 262.14 ms / F_CPU in MHz.
+130:           
+131:              When the user request delay which exceed the maximum possible one,
+132:              _delay_ms() provides a decreased resolution functionality. In this
+133:              mode _delay_ms() will work with a resolution of 1/10 ms, providing
+134:              delays up to 6.5535 seconds (independent from CPU frequency).  The
+135:              user will not be informed about decreased resolution.
+136:           
+137:              If the avr-gcc toolchain has __builtin_avr_delay_cycles()
+138:              support, maximal possible delay is 4294967.295 ms/ F_CPU in MHz. For
+139:              values greater than the maximal possible delay, overflows results in
+140:              no delay i.e., 0ms.
+141:           
+142:              Conversion of \c __ms into clock cycles may not always result in
+143:              integer.  By default, the clock cycles rounded up to next
+144:              integer. This ensures that the user gets at least \c __ms
+145:              microseconds of delay.
+146:           
+147:              Alternatively, by defining the macro \c __DELAY_ROUND_DOWN__, or
+148:              \c __DELAY_ROUND_CLOSEST__, before including this header file, the
+149:              algorithm can be made to round down, or round to closest integer,
+150:              respectively.
+151:           
+152:              \note
+153:           
+154:              The implementation of _delay_ms() based on
+155:              __builtin_avr_delay_cycles() is not backward compatible with older
+156:              implementations.  In order to get functionality backward compatible
+157:              with previous versions, the macro \c "__DELAY_BACKWARD_COMPATIBLE__"
+158:              must be defined before including this header file. Also, the
+159:              backward compatible algorithm will be chosen if the code is
+160:              compiled in a <em>freestanding environment</em> (GCC option
+161:              \c -ffreestanding), as the math functions required for rounding are
+162:              not available to the compiler then.
+163:           
+164:            */
+165:           void
+166:           _delay_ms(double __ms)
+167:           {
+168:           	double __tmp ;
+169:           #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+170:             !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+171:             __STDC_HOSTED__
+172:           	uint32_t __ticks_dc;
+173:           	extern void __builtin_avr_delay_cycles(unsigned long);
+174:           	__tmp = ((F_CPU) / 1e3) * __ms;
+175:           
+176:           	#if defined(__DELAY_ROUND_DOWN__)
+177:           		__ticks_dc = (uint32_t)fabs(__tmp);
+178:           
+179:           	#elif defined(__DELAY_ROUND_CLOSEST__)
+180:           		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
+181:           
+182:           	#else
+183:           		//round up by default
+184:           		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+185:           	#endif
+186:           
+187:           	__builtin_avr_delay_cycles(__ticks_dc);
+0352  EF2F     LDI R18, 0xFF
+039A  EF8F     LDI R24, 0xFF
+03BF  EF9F     LDI R25, 0xFF
+03D1  EF9F     LDI R25, 0xFF
+03E3  EF9F     LDI R25, 0xFF
+03F1  EF9F     LDI R25, 0xFF
+040C  EF9F     LDI R25, 0xFF
+040D  E720     LDI R18, 0x70
+040E  E082     LDI R24, 0x02
+040F  5091     SUBI R25, 0x01
+0410  4020     SBCI R18, 0x00
+0411  4080     SBCI R24, 0x00
+0412  F7E1     BRNE _ZN14Timer1Attiny855startEh
+0413  C000     RJMP _ZN14Timer1Attiny855startEh
+0414  0000     NOP
+044A  EF2F     LDI R18, 0xFF
+044B  E780     LDI R24, 0x70
+044C  E092     LDI R25, 0x02
+044D  5021     SUBI R18, 0x01
+044E  4080     SBCI R24, 0x00
+044F  4090     SBCI R25, 0x00
+0450  F7E1     BRNE _ZN14Timer1Attiny854stopEh
+0451  C000     RJMP _ZN14Timer1Attiny859configPwmEhh
+0452  0000     NOP
+0453  2E0F     MOV R0, R31
+0454  E0F3     LDI R31, 0x03
+0455  2EAF     MOV R10, R31
+0456  2CB1     MOV R11, R1
+0457  2DF0     MOV R31, R0
+0458  2C81     MOV R8, R1
+0459  2E0F     MOV R0, R31
+045A  E6F4     LDI R31, 0x64
+045B  2E9F     MOV R9, R31
+045C  2DF0     MOV R31, R0
+0485  EF8F     LDI R24, 0xFF
+0486  E790     LDI R25, 0x70
+0487  E022     LDI R18, 0x02
+0488  5081     SUBI R24, 0x01
+0489  4090     SBCI R25, 0x00
+048A  4020     SBCI R18, 0x00
+048B  F7E1     BRNE _ZN14Timer1Attiny857cleanupEh
+048C  C000     RJMP _ZN14Timer1Attiny8512setDutyCycleEhhh
+048D  0000     NOP
+04BF  EF9F     LDI R25, 0xFF
+04C0  E720     LDI R18, 0x70
+04C1  E082     LDI R24, 0x02
+04C2  5091     SUBI R25, 0x01
+04C3  4020     SBCI R18, 0x00
+04C4  4080     SBCI R24, 0x00
+04C5  F7E1     BRNE _ZN14Timer0Attiny8512setDutyCycleEhhh
+04C6  C000     RJMP _ZN14Timer0Attiny8512setDutyCycleEhhh
+04C7  0000     NOP
+04E0  EF9F     LDI R25, 0xFF
+04E1  E720     LDI R18, 0x70
+04E2  E082     LDI R24, 0x02
+04E3  5091     SUBI R25, 0x01
+04E4  4020     SBCI R18, 0x00
+04E5  4080     SBCI R24, 0x00
+04E6  F7E1     BRNE _ZN13TimerAttiny85C2Ev
+04E7  C000     RJMP _ZN13TimerAttiny85C2Ev
+04E8  0000     NOP
+051D  EF2F     LDI R18, 0xFF
+051E  E780     LDI R24, 0x70
+051F  E092     LDI R25, 0x02
+0520  5021     SUBI R18, 0x01
+0521  4080     SBCI R24, 0x00
+0522  4090     SBCI R25, 0x00
+0523  F7E1     BRNE _ZN14Timer0Attiny8512setDutyCycleEhhh
+0524  C000     RJMP _GLOBAL__sub_I__ZN14Timer0Attiny859pInstanceE
+0525  0000     NOP
+0526  2E0F     MOV R0, R31
+0527  E0F5     LDI R31, 0x05
+0528  2ECF     MOV R12, R31
+0529  2CD1     MOV R13, R1
+052A  2DF0     MOV R31, R0
+052B  2C51     MOV R5, R1
+052C  2E0F     MOV R0, R31
+052D  E1F0     LDI R31, 0x10
+052E  2EEF     MOV R14, R31
+052F  E2F7     LDI R31, 0x27
+0530  2EFF     MOV R15, R31
+0531  2DF0     MOV R31, R0
+057B  EF8F     LDI R24, 0xFF
+057C  E790     LDI R25, 0x70
+057D  E022     LDI R18, 0x02
+057E  5081     SUBI R24, 0x01
+057F  4090     SBCI R25, 0x00
+0580  4020     SBCI R18, 0x00
+0581  F7E1     BRNE 0x57E
+0582  C000     RJMP 0x583
+0583  0000     NOP
+0588  EF8F     LDI R24, 0xFF
+0589  E790     LDI R25, 0x70
+058A  E022     LDI R18, 0x02
+058B  5081     SUBI R24, 0x01
+058C  4090     SBCI R25, 0x00
+058D  4020     SBCI R18, 0x00
+058E  F7E1     BRNE 0x58B
+058F  C000     RJMP 0x590
+0590  0000     NOP
+059D  EF8F     LDI R24, 0xFF
+059E  ED93     LDI R25, 0xD3
+059F  E320     LDI R18, 0x30
+05A0  5081     SUBI R24, 0x01
+05A1  4090     SBCI R25, 0x00
+05A2  4020     SBCI R18, 0x00
+05A3  F7E1     BRNE 0x5A0
+05A4  C000     RJMP 0x5A5
+05A5  0000     NOP
+188:           
+189:           #else
+190:           	uint16_t __ticks;
+191:           	__tmp = ((F_CPU) / 4e3) * __ms;
+192:           	if (__tmp < 1.0)
+193:           		__ticks = 1;
+194:           	else if (__tmp > 65535)
+195:           	{
+196:           		//	__ticks = requested delay in 1/10 ms
+197:           		__ticks = (uint16_t) (__ms * 10.0);
+198:           		while(__ticks)
+199:           		{
+200:           			// wait 1/10 ms
+201:           			_delay_loop_2(((F_CPU) / 4e3) / 10);
+202:           			__ticks --;
+203:           		}
+204:           		return;
+205:           	}
+206:           	else
+207:           		__ticks = (uint16_t)__tmp;
+208:           	_delay_loop_2(__ticks);
+209:           #endif
+210:           }
+211:           
+212:           /**
+213:              \ingroup util_delay
+214:           
+215:              Perform a delay of \c __us microseconds, using _delay_loop_1().
+216:           
+217:              The macro F_CPU is supposed to be defined to a
+218:              constant defining the CPU clock frequency (in Hertz).
+219:           
+220:              The maximal possible delay is 768 us / F_CPU in MHz.
+221:           
+222:              If the user requests a delay greater than the maximal possible one,
+223:              _delay_us() will automatically call _delay_ms() instead.  The user
+224:              will not be informed about this case.
+225:           
+226:              If the avr-gcc toolchain has __builtin_avr_delay_cycles()
+227:              support, maximal possible delay is 4294967.295 us/ F_CPU in MHz. For
+228:              values greater than the maximal possible delay, overflow results in
+229:              no delay i.e., 0us.
+230:           
+231:              Conversion of \c __us into clock cycles may not always result in
+232:              integer.  By default, the clock cycles rounded up to next
+233:              integer. This ensures that the user gets at least \c __us
+234:              microseconds of delay.
+235:           
+236:              Alternatively, by defining the macro \c __DELAY_ROUND_DOWN__, or
+237:              \c __DELAY_ROUND_CLOSEST__, before including this header file, the
+238:              algorithm can be made to round down, or round to closest integer,
+239:              respectively.
+240:           
+241:              \note
+242:           
+243:              The implementation of _delay_ms() based on
+244:              __builtin_avr_delay_cycles() is not backward compatible with older
+245:              implementations.  In order to get functionality backward compatible
+246:              with previous versions, the macro \c __DELAY_BACKWARD_COMPATIBLE__
+247:              must be defined before including this header file. Also, the
+248:              backward compatible algorithm will be chosen if the code is
+249:              compiled in a <em>freestanding environment</em> (GCC option
+250:              \c -ffreestanding), as the math functions required for rounding are
+251:              not available to the compiler then.
+252:           
+253:            */
+254:           void
+255:           _delay_us(double __us)
+256:           {
+257:           	double __tmp ;
+258:           #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+259:             !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+260:             __STDC_HOSTED__
+261:           	uint32_t __ticks_dc;
+262:           	extern void __builtin_avr_delay_cycles(unsigned long);
+263:           	__tmp = ((F_CPU) / 1e6) * __us;
+264:           
+265:           	#if defined(__DELAY_ROUND_DOWN__)
+266:           		__ticks_dc = (uint32_t)fabs(__tmp);
+267:           
+268:           	#elif defined(__DELAY_ROUND_CLOSEST__)
+269:           		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
+270:           
+271:           	#else
+272:           		//round up by default
+273:           		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+274:           	#endif
+275:           
+276:           	__builtin_avr_delay_cycles(__ticks_dc);
+277:           
+278:           #else
+279:           	uint8_t __ticks;
+280:           	double __tmp2 ;
+281:           	__tmp = ((F_CPU) / 3e6) * __us;
+282:           	__tmp2 = ((F_CPU) / 4e6) * __us;
+283:           	if (__tmp < 1.0)
+284:           		__ticks = 1;
+285:           	else if (__tmp2 > 65535)
+286:           	{
+287:           		_delay_ms(__us / 1000.0);
+288:           	}
+289:           	else if (__tmp > 255)
+290:           	{
+291:           		uint16_t __ticks=(uint16_t)__tmp2;
+292:           		_delay_loop_2(__ticks);
+293:           		return;
+294:           	}
+295:           	else
+296:           		__ticks = (uint8_t)__tmp;
+297:           	_delay_loop_1(__ticks);
+298:           #endif
+299:           }
+300:           
+301:           
+302:           #endif /* _UTIL_DELAY_H_ */
+---  /home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libUartTx.X/libUartTxTest.cpp  -------------
+1:             // testing application for libUartTx
+2:             // copyright applies according to LICENSE_software.md in GitHub root folder
+3:             
+4:             #include <util/delay.h>
+5:             #include "libUartTx.h"
+6:             
+7:             #ifndef BAUD
+8:                 #define BAUD 9600
+9:             #endif
+10:            
+11:            #ifndef F_CPU
+12:                #define F_CPU 8000000
+13:            #endif
+14:            
+15:            #ifndef __AVR_ATtiny85__
+16:                #define __AVR_ATtiny85__
+17:            #endif
+18:            
+19:            //ToDo
+20:            //read about interrupts. when to use cli/sei, what about SREG?
+21:            //try to write to prescaler and find out, where the value is lost
+22:            //change libTimer to non-singleton
+23:            //comment all _delay_ms and set optimizer to 0?
+24:            
+25:            
+26:            /*Bugs
+27:            prescaler value is corrupted
+28:                when setting the prescaler, when calling start
+29:                prescaler is set correctly, when calling config
+30:            MUC seems to restart/reboot    
+31:                when calling sei();?
+32:                missing ISR?
+33:             overflow interrupt configured
+34:                for some reasing, the overflow interrupt was configured once
+35:                unclear why
+36:             
+37:            */  
+38:            
+39:            int main(void){
+0324  924F     PUSH R4
+0325  925F     PUSH R5
+0326  926F     PUSH R6
+0327  927F     PUSH R7
+0328  928F     PUSH R8
+0329  929F     PUSH R9
+032A  92AF     PUSH R10
+032B  92BF     PUSH R11
+032C  92CF     PUSH R12
+032D  92DF     PUSH R13
+032E  92EF     PUSH R14
+032F  92FF     PUSH R15
+0330  930F     PUSH R16
+0331  931F     PUSH R17
+0332  93CF     PUSH R28
+0333  93DF     PUSH R29
+0334  B7CD     IN R28, 0x3D
+0335  B7DE     IN R29, 0x3E
+0336  976B     SBIW R28, 0x1B
+0337  B60F     IN R0, 0x3F
+0338  94F8     CLI
+0339  BFDE     OUT 0x3E, R29
+033A  BE0F     OUT 0x3F, R0
+033B  BFCD     OUT 0x3D, R28
+40:                
+41:                const char      testString[]    = "Hello World!";
+033C  E08D     LDI R24, 0x0D
+033D  E8E4     LDI R30, 0x84
+033E  E0F1     LDI R31, 0x01
+033F  01DE     MOVW R26, R28
+0340  9611     ADIW R26, 0x01
+0341  9001     LD R0, Z+
+0342  920D     ST X+, R0
+0343  958A     DEC R24
+0344  F7E1     BRNE _ZN14Timer1Attiny8537deactivateOutputCompareMatchInterruptEh5ocr_t
+42:                const char      testNewLine[]   = "Test new line";
+0345  E08E     LDI R24, 0x0E
+0346  E9E1     LDI R30, 0x91
+0347  E0F1     LDI R31, 0x01
+0348  01DE     MOVW R26, R28
+0349  961E     ADIW R26, 0x0E
+034A  9001     LD R0, Z+
+034B  920D     ST X+, R0
+034C  958A     DEC R24
+034D  F7E1     BRNE _ZN14Timer1Attiny8523configTimerCompareMatchEh5ocr_t
+43:                const uint8_t   binaryByte      = 0b10101010;   
+44:                const uint8_t   testUint8       = 10;
+45:                const uint8_t   testUint8_2     = 255;
+46:                const int8_t    testInt8        = -128;
+47:                const int8_t    testInt8_2      = -127;
+48:                const int8_t    testInt8_3      = 127;
+49:                const uint16_t  testUint16      = 65535UL;
+50:                const int16_t   testInt16       = -32768L;
+51:                const int16_t   testInt16_2     = -32767L;
+52:                const int16_t   testInt16_3     = 32767L;
+53:                
+54:                const uint8_t   ocrInitValue  = 103;
+55:                
+56:                UartTx* myUartTx = UartTx::getInstance();
+034E  DF08     RCALL _ZN14Timer0Attiny859configPwmEhh
+034F  018C     MOVW R16, R24
+57:                UartTx* myUartTx2 = UartTx::getInstance();
+0350  DF06     RCALL _ZN14Timer0Attiny859configPwmEhh
+0351  013C     MOVW R6, R24
+58:                
+59:                _delay_ms(3000);
+60:                
+61:                myUartTx->printLn();
+035B  01C8     MOVW R24, R16
+035C  DF5E     RCALL _ZN14Timer0Attiny857cleanupEh
+62:                myUartTx->printLn();
+035D  01C8     MOVW R24, R16
+035E  DF5C     RCALL _ZN14Timer0Attiny857cleanupEh
+63:                myUartTx->printStrLn("New test session started");
+035F  E663     LDI R22, 0x63
+0360  E070     LDI R23, 0x00
+0361  01C8     MOVW R24, R16
+0362  DF5C     RCALL _ZN14Timer0Attiny857cleanupEh
+64:                myUartTx->printLn();
+0363  01C8     MOVW R24, R16
+0364  DF56     RCALL _ZN14Timer0Attiny857cleanupEh
+65:                
+66:                myUartTx->printStrLn("Tune timer interrupt");
+0365  E76C     LDI R22, 0x7C
+0366  E070     LDI R23, 0x00
+0367  01C8     MOVW R24, R16
+0368  DF56     RCALL _ZN14Timer0Attiny857cleanupEh
+67:                uint8_t i = 5;
+68:                uint8_t newOcrValue = ocrInitValue - i/2 -1;
+0369  2E0F     MOV R0, R31
+036A  E6F4     LDI R31, 0x64
+036B  2EEF     MOV R14, R31
+036C  2DF0     MOV R31, R0
+69:                while(i--){
+03A3  E689     LDI R24, 0x69
+03A4  12E8     CPSE R14, R24
+03A5  CFD2     RJMP _ZN14Timer1Attiny8523configTimerCompareMatchEh5ocr_t
+70:                    newOcrValue = newOcrValue + 1;
+0378  94E3     INC R14
+71:                    myUartTx->setOcrValue(newOcrValue);
+0379  2D6E     MOV R22, R14
+037A  01C8     MOVW R24, R16
+037B  DEDE     RCALL _ZN14Timer0Attiny859configPwmEhh
+72:                    myUartTx->printStr("This is a test string for OCR0A = ");
+037C  E961     LDI R22, 0x91
+037D  E070     LDI R23, 0x00
+037E  01C8     MOVW R24, R16
+037F  DF27     RCALL _ZN14Timer0Attiny857cleanupEh
+0380  2E0F     MOV R0, R31
+0381  E0F3     LDI R31, 0x03
+0382  2ECF     MOV R12, R31
+0383  2CD1     MOV R13, R1
+0384  2DF0     MOV R31, R0
+73:                    myUartTx->printNum(newOcrValue);
+74:                    myUartTx->printLn();
+0398  01C8     MOVW R24, R16
+0399  DF21     RCALL _ZN14Timer0Attiny857cleanupEh
+75:                    _delay_ms(500);
+76:                }
+77:                
+78:                myUartTx->setOcrValue(104);
+03A6  E668     LDI R22, 0x68
+03A7  01C8     MOVW R24, R16
+03A8  DEB1     RCALL _ZN14Timer0Attiny859configPwmEhh
+79:                
+80:                myUartTx->printLn();
+03A9  01C8     MOVW R24, R16
+03AA  DF10     RCALL _ZN14Timer0Attiny857cleanupEh
+81:                myUartTx->printStrLn("Test printStr");
+03AB  EB64     LDI R22, 0xB4
+03AC  E070     LDI R23, 0x00
+03AD  01C8     MOVW R24, R16
+03AE  DF10     RCALL _ZN14Timer0Attiny857cleanupEh
+82:                myUartTx->printStr(testString);
+03AF  01BE     MOVW R22, R28
+03B0  5F6F     SUBI R22, 0xFF
+03B1  4F7F     SBCI R23, 0xFF
+03B2  01C8     MOVW R24, R16
+03B3  DEF3     RCALL _ZN14Timer0Attiny857cleanupEh
+83:                myUartTx->printLn();
+03B4  01C8     MOVW R24, R16
+84:                myUartTx->printStrLn("printStrLn");
+03B6  EC62     LDI R22, 0xC2
+03B7  E070     LDI R23, 0x00
+03B8  01C8     MOVW R24, R16
+03B9  DF05     RCALL _ZN14Timer0Attiny857cleanupEh
+85:                myUartTx->printStrLn(testNewLine);
+03BA  01BE     MOVW R22, R28
+03BB  5F62     SUBI R22, 0xF2
+03BC  4F7F     SBCI R23, 0xFF
+03BD  01C8     MOVW R24, R16
+03BE  DF00     RCALL _ZN14Timer0Attiny857cleanupEh
+86:                _delay_ms(100);
+87:            
+88:                myUartTx->printStrLn("printBinaryByte");
+03C8  EC6D     LDI R22, 0xCD
+03C9  E070     LDI R23, 0x00
+03CA  01C8     MOVW R24, R16
+03CB  DEF3     RCALL _ZN14Timer0Attiny857cleanupEh
+89:                myUartTx->printBinaryByte(binaryByte);
+03CC  EA6A     LDI R22, 0xAA
+03CD  01C8     MOVW R24, R16
+03CE  DEF9     RCALL _ZN14Timer0Attiny857cleanupEh
+90:                myUartTx->printLn();
+03CF  01C8     MOVW R24, R16
+03D0  DEEA     RCALL _ZN14Timer0Attiny857cleanupEh
+91:                _delay_ms(100);
+92:            
+93:                myUartTx->printStrLn("Test printNum(uint8_t)");
+03DA  ED6D     LDI R22, 0xDD
+03DB  E070     LDI R23, 0x00
+03DC  01C8     MOVW R24, R16
+03DD  DEE1     RCALL _ZN14Timer0Attiny857cleanupEh
+94:                myUartTx->printNum(testUint8);
+03DE  E06A     LDI R22, 0x0A
+03DF  01C8     MOVW R24, R16
+03E0  DF10     RCALL _ZN14Timer1Attiny8526setOutputCompareMatchValueEh5ocr_th
+95:                myUartTx->printLn();
+03E1  01C8     MOVW R24, R16
+03E2  DED8     RCALL _ZN14Timer0Attiny857cleanupEh
+96:                _delay_ms(100);
+97:            
+98:                myUartTx->printNum(testUint8_2);
+03EC  EF6F     LDI R22, 0xFF
+03ED  01C8     MOVW R24, R16
+03EE  DF02     RCALL _ZN14Timer1Attiny8526setOutputCompareMatchValueEh5ocr_th
+99:                myUartTx->printLn();
+03EF  01C8     MOVW R24, R16
+03F0  DECA     RCALL _ZN14Timer0Attiny857cleanupEh
+100:               _delay_ms(100);
+101:           
+102:               myUartTx->printStrLn("Test printNum(int8_t)");
+03FA  EF64     LDI R22, 0xF4
+03FB  E070     LDI R23, 0x00
+03FC  01C8     MOVW R24, R16
+03FD  DEC1     RCALL _ZN14Timer0Attiny857cleanupEh
+103:               myUartTx->printNum(testInt8);
+104:               myUartTx->printLn();
+040A  01C8     MOVW R24, R16
+040B  DEAF     RCALL _ZN14Timer0Attiny857cleanupEh
+105:               _delay_ms(100);
+106:           
+107:               myUartTx->printNum(testInt8_2);
+108:               myUartTx->printLn();
+0448  01C8     MOVW R24, R16
+0449  DE71     RCALL _ZN14Timer0Attiny857cleanupEh
+109:               _delay_ms(100);
+110:           
+111:               myUartTx->printNum(testInt8_3);
+112:               myUartTx->printLn();
+0483  01C8     MOVW R24, R16
+0484  DE36     RCALL _ZN14Timer0Attiny857cleanupEh
+113:               _delay_ms(100);
+114:               
+115:               myUartTx->printStrLn("Test printNum(uint16_t)");
+048E  E06A     LDI R22, 0x0A
+048F  E071     LDI R23, 0x01
+0490  01C8     MOVW R24, R16
+0491  DE2D     RCALL _ZN14Timer0Attiny857cleanupEh
+0492  2E0F     MOV R0, R31
+0493  E0F5     LDI R31, 0x05
+0494  2ECF     MOV R12, R31
+0495  2CD1     MOV R13, R1
+0496  2DF0     MOV R31, R0
+116:               myUartTx->printNum(testUint16);
+117:               myUartTx->printLn();
+04BD  01C8     MOVW R24, R16
+04BE  DDFC     RCALL _ZN14Timer0Attiny857cleanupEh
+118:               _delay_ms(100);
+119:           
+120:               myUartTx->printStrLn("Test printNum(int16_t)");
+04C8  E262     LDI R22, 0x22
+04C9  E071     LDI R23, 0x01
+04CA  01C8     MOVW R24, R16
+04CB  DDF3     RCALL _ZN14Timer0Attiny857cleanupEh
+121:               myUartTx->printNum(testInt16);
+122:               myUartTx->printLn();
+04DE  01C8     MOVW R24, R16
+04DF  DDDB     RCALL _ZN14Timer0Attiny857cleanupEh
+123:               _delay_ms(100);
+124:               myUartTx->printNum(testInt16_2);
+125:               myUartTx->printLn();
+051B  01C8     MOVW R24, R16
+051C  DD9E     RCALL _ZN14Timer0Attiny857cleanupEh
+126:               _delay_ms(100);
+127:               myUartTx->printNum(testInt16_3);
+128:               myUartTx->printLn();
+0579  01C8     MOVW R24, R16
+057A  DD40     RCALL _ZN14Timer0Attiny857cleanupEh
+129:               _delay_ms(100);
+130:               
+131:               myUartTx2->printStrLn("Send by '2nd' instance ");
+0584  E369     LDI R22, 0x39
+0585  E071     LDI R23, 0x01
+0586  01C3     MOVW R24, R6
+0587  DD37     RCALL _ZN14Timer0Attiny857cleanupEh
+132:               _delay_ms(100);
+133:               
+134:               myUartTx->printLn();
+0591  01C8     MOVW R24, R16
+0592  DD28     RCALL _ZN14Timer0Attiny857cleanupEh
+135:               myUartTx->printStrLn("Test completed");
+0593  E561     LDI R22, 0x51
+0594  E071     LDI R23, 0x01
+0595  01C8     MOVW R24, R16
+0596  DD28     RCALL _ZN14Timer0Attiny857cleanupEh
+136:               myUartTx->printStrLn("-----------------------------------");
+0597  E660     LDI R22, 0x60
+0598  E071     LDI R23, 0x01
+0599  01C8     MOVW R24, R16
+059A  DD24     RCALL _ZN14Timer0Attiny857cleanupEh
+137:               myUartTx->printLn();
+059B  01C8     MOVW R24, R16
+059C  DD1E     RCALL _ZN14Timer0Attiny857cleanupEh
+138:           
+139:               _delay_ms(2000);    
+140:           
+141:               return 0;
+142:           }
+05A6  E080     LDI R24, 0x00
+05A7  E090     LDI R25, 0x00
+05A8  966B     ADIW R28, 0x1B
+05A9  B60F     IN R0, 0x3F
+05AA  94F8     CLI
+05AB  BFDE     OUT 0x3E, R29
+05AC  BE0F     OUT 0x3F, R0
+05AD  BFCD     OUT 0x3D, R28
+05AE  91DF     POP R29
+05AF  91CF     POP R28
+05B0  911F     POP R17
+05B1  910F     POP R16
+05B2  90FF     POP R15
+05B3  90EF     POP R14
+05B4  90DF     POP R13
+05B5  90CF     POP R12
+05B6  90BF     POP R11
+05B7  90AF     POP R10
+05B8  909F     POP R9
+05B9  908F     POP R8
+05BA  907F     POP R7
+05BB  906F     POP R6
+05BC  905F     POP R5
+05BD  904F     POP R4
+05BE  9508     RET
+---  /home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libUartTx.X/libUartTx.h  -------------------
+1:             /*--------------------------------------------------------------------
+2:              Description:   Provides a Uart transmition interface implemented in SW only
+3:                             Implemented as singelton -> there can only be one instance of 
+4:                                 the class. If created again, the adress of the existing 
+5:                                 object is returned.
+6:                             Supports 8bit binary, int8, uint8, int16, uint16, string
+7:                             Any kind of floating point and 32-bit numbers are not supported
+8:                             Any digital pin can be selected as Tx pin
+9:                             While sending data, the library blocks the CPU. Keep strings short!
+10:             
+11:             Author:        Johannes Windmiller
+12:             
+13:             Dependencies:  timer0 compare A match interrupt, UART to USB adapter
+14:             
+15:             Version:       v0.1
+16:             
+17:             History:       v0.1     Initial implementation
+18:             
+19:             Supported MUC: ATtiny85 @ 8 MHz, 9600 BAUD rate
+20:             
+21:             References:    http://www.technoblogy.com/show?RPY -> Rx? 
+22:                            accessed on 25.10.2023
+23:                            https://hackaday.com/2019/03/13/attiny-gets-a-tiny-software-uart/ 
+24:                            accessed on 25.10.2023
+25:                            Elliot Williams, Make: AVR Programming p81ff, Make Media 2014    
+26:             
+27:             Comment:       I'm well aware, that there is a T in UART for transmit;), but 
+28:                            I need to destinguish between the Tx and the TxRx library 
+29:                            somehow. Calling one UAT and the other UART would be ambigous.
+30:             
+31:             Copyright:     see LICENSE_software.md in GitHub root folder
+32:             *--------------------------------------------------------------------*/
+33:            
+34:            //--------------------------------------------------------------------
+35:            /* ToDo: 
+36:            //  - store OCRA in eeprom?
+37:            //      - define adress
+38:            //      - if value is 0 run the tuning algorithm and use value from source code
+39:            //      - if there is a plausible value, use the value and skip the tuning algorithm
+40:            //  - implement UartTxRx -> UartHwTxRx?
+41:             // - rename to UartSwTx?
+42:            //  - compare bit bang implementatation (hackaday) to USI implementation (make)
+43:            //  - can UartTx implemented based on bit bang and USI in one class? maybe abstract libUartTx
+44:            //      and lower level libUSI and libBitBangUartTx? 
+45:            //      What is the advantage of USI over bitbang? Compare size of static compiled library
+46:            //  - implement libUSI?
+47:            
+48:            //  Backlog:
+49:            //      - implement for other processor speed -> fix BAUD rate?
+50:            //      - extend for Attiny 84
+51:            //      - implement return value, if device bussy and several users have access to the services
+52:            //  Rx
+53:            //      - try to implement Tx with USI as well. Deactivate Rx while sending
+54:            //--------------------------------------------------------------------*/
+55:            
+56:            #ifndef LIBUARTTX_H
+57:            #define	LIBUARTTX_H
+58:            
+59:            #define HW_ATtiny85_Default_Debugging_Board
+60:            
+61:            #include <avr/io.h>
+62:            #include "ioMapUartTx.h"
+63:            #include "libUtility.h"     //v0.2
+64:            #include "libIOHandler.h"   //v0.1
+65:            #include "libTimer.h"       //v0.1
+66:            
+67:            #define timer0 //comment to select timer1
+68:            
+69:            #ifndef timer0
+70:            #define timer1
+71:            #endif
+72:            
+73:            #ifndef __AVR_ATtiny85__
+74:            #error "Library supports ATtiny 85 only, which is not set in project setup."
+75:            #endif
+76:            
+77:            //--------------------------------------------------------------------
+78:            //global variables required by ISR
+79:            const uint8_t txPin = UART_Tx_PIN;
+80:            static volatile uint16_t txShiftReg = 0;
+81:            
+82:            //--------------------------------------------------------------------
+83:            
+84:            class UartTx {
+85:            public:
+86:                static UartTx* getInstance(void);
+87:            
+88:                void setOcrValue(uint8_t argOcrValue);
+89:            
+90:                void printStr(const char* argString);
+91:                void printStrLn(const char* argString);
+92:                void printLn(void);
+93:            
+94:                void printBinaryByte(uint8_t argByte);
+95:            
+96:                //must be implemented in header. Otherwise linker error...
+97:            
+98:                template <typename T> void printNum(T argNum) {
+02F1  92BF     PUSH R11
+02F2  92CF     PUSH R12
+02F3  92DF     PUSH R13
+02F4  92EF     PUSH R14
+02F5  92FF     PUSH R15
+02F6  930F     PUSH R16
+02F7  931F     PUSH R17
+02F8  93CF     PUSH R28
+02F9  93DF     PUSH R29
+02FA  017C     MOVW R14, R24
+02FB  2EC6     MOV R12, R22
+02FC  E003     LDI R16, 0x03
+02FD  E010     LDI R17, 0x00
+99:                    T i = 0;
+100:                   T initValue = 1;
+101:                   T temp = 0;
+102:                   T unsignedValue = argNum;
+103:                   uint8_t shiftValueSign = 0;
+104:                   uint8_t startTransmission = 0;
+02FE  2CD1     MOV R13, R1
+036D  2C81     MOV R8, R1
+0385  2CA8     MOV R10, R8
+0497  2C51     MOV R5, R1
+105:           
+106:                   switch (sizeof (argNum)) {
+107:                       case 1://1 byte
+108:                           initValue = 100;
+109:                           if (argNum < 0)
+110:                               shiftValueSign = 7;
+111:                           break;
+112:                       case 2://2 byte
+113:                           initValue = (T) 10000L;
+114:                           if (argNum < 0)
+115:                               shiftValueSign = 15;
+116:                           break;
+117:                           //        default:
+118:                           //how to handel errors?
+119:                           //32-bit integer, float, any other complex data type
+120:                           //break;
+121:                   }
+122:           
+123:                   //convert unsigned to signed
+124:                   if (shiftValueSign) {//shiftValueSign == 0 if unsigned
+125:                       if ((unsignedValue & 1 << shiftValueSign) != 0) {//check if sign is negative
+126:                           transmitByte('-');
+03FE  E26D     LDI R22, 0x2D
+03FF  01C8     MOVW R24, R16
+0400  DE84     RCALL _ZN14Timer0Attiny859configPwmEhh
+0415  E26D     LDI R22, 0x2D
+0416  01C8     MOVW R24, R16
+0417  DE6D     RCALL _ZN14Timer0Attiny859configPwmEhh
+0418  2E0F     MOV R0, R31
+0419  E0F3     LDI R31, 0x03
+041A  2EAF     MOV R10, R31
+041B  2CB1     MOV R11, R1
+041C  2DF0     MOV R31, R0
+041D  2C81     MOV R8, R1
+041E  2E0F     MOV R0, R31
+041F  E6F4     LDI R31, 0x64
+0420  2E9F     MOV R9, R31
+0421  2DF0     MOV R31, R0
+04CC  E26D     LDI R22, 0x2D
+04CD  01C8     MOVW R24, R16
+04CE  DDB6     RCALL _ZN14Timer0Attiny859configPwmEhh
+04E9  E26D     LDI R22, 0x2D
+04EA  01C8     MOVW R24, R16
+04EB  DD99     RCALL _ZN14Timer0Attiny859configPwmEhh
+04EC  2E0F     MOV R0, R31
+04ED  E0F5     LDI R31, 0x05
+04EE  2ECF     MOV R12, R31
+04EF  2CD1     MOV R13, R1
+04F0  2DF0     MOV R31, R0
+04F1  2C51     MOV R5, R1
+04F2  2E0F     MOV R0, R31
+04F3  E1F0     LDI R31, 0x10
+04F4  2EEF     MOV R14, R31
+04F5  E2F7     LDI R31, 0x27
+04F6  2EFF     MOV R15, R31
+04F7  2DF0     MOV R31, R0
+127:                           //wrong for -128 and -32768 -> exception handeled below
+128:                           unsignedValue = -unsignedValue;
+129:                       }
+130:                   }
+131:                   if (argNum != -128L && argNum != -32768L)
+132:                       for (i = initValue; i >= 1; i /= 10) {
+02FF  E6C4     LDI R28, 0x64
+030C  2F8C     MOV R24, R28
+030D  2F6D     MOV R22, R29
+030E  D74B     RCALL 0xA5A
+030F  2FC8     MOV R28, R24
+0310  5001     SUBI R16, 0x01
+0311  0911     SBC R17, R1
+0312  F781     BRNE _ZN14Timer1Attiny8526setOutputCompareMatchValueEh5ocr_th
+0313  C006     RJMP _ZN14Timer1Attiny8526setOutputCompareMatchValueEh5ocr_th
+036E  2E0F     MOV R0, R31
+036F  E6F4     LDI R31, 0x64
+0370  2E9F     MOV R9, R31
+0371  2DF0     MOV R31, R0
+0386  2CF9     MOV R15, R9
+0390  2D8F     MOV R24, R15
+0391  2D6B     MOV R22, R11
+0392  D6C7     RCALL 0xA5A
+0393  2EF8     MOV R15, R24
+0394  E021     LDI R18, 0x01
+0395  1AC2     SUB R12, R18
+0396  08D1     SBC R13, R1
+0397  F779     BRNE _ZN14Timer1Attiny8523configTimerCompareMatchEh5ocr_t
+042E  2E0F     MOV R0, R31
+042F  E0FA     LDI R31, 0x0A
+0430  2E5F     MOV R5, R31
+0431  2DF0     MOV R31, R0
+0440  2D89     MOV R24, R9
+0441  2D65     MOV R22, R5
+0442  D623     RCALL 0xA66
+0443  2E98     MOV R9, R24
+0444  E091     LDI R25, 0x01
+0445  1AA9     SUB R10, R25
+0446  08B1     SBC R11, R1
+0447  F751     BRNE _ZN14Timer1Attiny854stopEh
+0469  2E0F     MOV R0, R31
+046A  E0FA     LDI R31, 0x0A
+046B  2E5F     MOV R5, R31
+046C  2DF0     MOV R31, R0
+047B  2D89     MOV R24, R9
+047C  2D65     MOV R22, R5
+047D  D5E8     RCALL 0xA66
+047E  2E98     MOV R9, R24
+047F  E021     LDI R18, 0x01
+0480  1AA2     SUB R10, R18
+0481  08B1     SBC R11, R1
+0482  F751     BRNE _ZN14Timer1Attiny857cleanupEh
+0498  2E0F     MOV R0, R31
+0499  E1F0     LDI R31, 0x10
+049A  2EEF     MOV R14, R31
+049B  E2F7     LDI R31, 0x27
+049C  2EFF     MOV R15, R31
+049D  2DF0     MOV R31, R0
+04B5  01C7     MOVW R24, R14
+04B6  01B5     MOVW R22, R10
+04B7  D5BB     RCALL 0xA73
+04B8  017B     MOVW R14, R22
+04B9  E081     LDI R24, 0x01
+04BA  1AC8     SUB R12, R24
+04BB  08D1     SBC R13, R1
+04BC  F759     BRNE TimerAttiny85::calculateDutyCycleRegisterValue
+0513  01C7     MOVW R24, R14
+0514  01B5     MOVW R22, R10
+0515  D571     RCALL 0xA87
+0516  017B     MOVW R14, R22
+0517  E091     LDI R25, 0x01
+0518  1AC9     SUB R12, R25
+0519  08D1     SBC R13, R1
+051A  F751     BRNE _ZN14Timer0Attiny8512setDutyCycleEhhh
+054C  01C7     MOVW R24, R14
+054D  01B5     MOVW R22, R10
+054E  D538     RCALL 0xA87
+054F  017B     MOVW R14, R22
+0550  E021     LDI R18, 0x01
+0551  1AC2     SUB R12, R18
+0552  08D1     SBC R13, R1
+0553  F759     BRNE 0x53F
+0554  C024     RJMP 0x579
+133:                           temp = (unsignedValue / i) % 10;
+0300  E0DA     LDI R29, 0x0A
+0303  2D8C     MOV R24, R12
+0304  2F6C     MOV R22, R28
+0305  D754     RCALL 0xA5A
+0306  2F6D     MOV R22, R29
+0307  D752     RCALL 0xA5A
+0372  2E0F     MOV R0, R31
+0387  2D8E     MOV R24, R14
+0388  2D6F     MOV R22, R15
+0389  D6D0     RCALL 0xA5A
+038A  2D6B     MOV R22, R11
+038B  D6CE     RCALL 0xA5A
+0422  2E0F     MOV R0, R31
+0423  E7FF     LDI R31, 0x7F
+0424  2ECF     MOV R12, R31
+0425  2CD1     MOV R13, R1
+0426  2DF0     MOV R31, R0
+0427  2E0F     MOV R0, R31
+0428  E0FA     LDI R31, 0x0A
+0429  2EEF     MOV R14, R31
+042A  2CF1     MOV R15, R1
+042B  2DF0     MOV R31, R0
+0432  01C6     MOVW R24, R12
+0433  2D69     MOV R22, R9
+0434  2C09     MOV R0, R9
+0435  0C00     ADD R0, R0
+0436  0B77     SBC R23, R23
+0437  D64F     RCALL 0xA87
+0438  01CB     MOVW R24, R22
+0439  01B7     MOVW R22, R14
+043A  D64C     RCALL 0xA87
+045D  2E0F     MOV R0, R31
+045E  E7FF     LDI R31, 0x7F
+045F  2ECF     MOV R12, R31
+0460  2CD1     MOV R13, R1
+0461  2DF0     MOV R31, R0
+0462  2E0F     MOV R0, R31
+0463  E0FA     LDI R31, 0x0A
+0464  2EEF     MOV R14, R31
+0465  2CF1     MOV R15, R1
+0466  2DF0     MOV R31, R0
+046D  01C6     MOVW R24, R12
+046E  2D69     MOV R22, R9
+046F  2C09     MOV R0, R9
+0470  0C00     ADD R0, R0
+0471  0B77     SBC R23, R23
+0472  D614     RCALL 0xA87
+0473  01CB     MOVW R24, R22
+0474  01B7     MOVW R22, R14
+0475  D611     RCALL 0xA87
+049E  2488     EOR R8, R8
+049F  948A     DEC R8
+04A0  2C98     MOV R9, R8
+04A1  2E0F     MOV R0, R31
+04A2  E0FA     LDI R31, 0x0A
+04A3  2EAF     MOV R10, R31
+04A4  2CB1     MOV R11, R1
+04A5  2DF0     MOV R31, R0
+04A8  01C4     MOVW R24, R8
+04A9  01B7     MOVW R22, R14
+04AA  D5C8     RCALL 0xA73
+04AB  01CB     MOVW R24, R22
+04AC  01B5     MOVW R22, R10
+04AD  D5C5     RCALL 0xA73
+04AE  2F28     MOV R18, R24
+04AF  2F39     MOV R19, R25
+04F8  2E0F     MOV R0, R31
+04F9  2488     EOR R8, R8
+04FA  948A     DEC R8
+04FB  E7FF     LDI R31, 0x7F
+04FC  2E9F     MOV R9, R31
+04FD  2DF0     MOV R31, R0
+04FE  2E0F     MOV R0, R31
+04FF  E0FA     LDI R31, 0x0A
+0500  2EAF     MOV R10, R31
+0501  2CB1     MOV R11, R1
+0502  2DF0     MOV R31, R0
+0505  01C4     MOVW R24, R8
+0506  01B7     MOVW R22, R14
+0507  D57F     RCALL 0xA87
+0508  01CB     MOVW R24, R22
+0509  01B5     MOVW R22, R10
+050A  D57C     RCALL 0xA87
+050B  2F28     MOV R18, R24
+050C  2F39     MOV R19, R25
+0532  2E0F     MOV R0, R31
+0533  2488     EOR R8, R8
+0534  948A     DEC R8
+0535  E7FF     LDI R31, 0x7F
+0536  2E9F     MOV R9, R31
+0537  2DF0     MOV R31, R0
+0538  2E0F     MOV R0, R31
+0539  E0FA     LDI R31, 0x0A
+053A  2EAF     MOV R10, R31
+053B  2CB1     MOV R11, R1
+053C  2DF0     MOV R31, R0
+053F  01C4     MOVW R24, R8
+0540  01B7     MOVW R22, R14
+0541  D545     RCALL 0xA87
+0542  01CB     MOVW R24, R22
+0543  01B5     MOVW R22, R10
+0544  D542     RCALL 0xA87
+0545  2F28     MOV R18, R24
+0546  2F39     MOV R19, R25
+134:                           if (startTransmission == 0 && temp > 0)//get rid of leading zeros
+0308  10D1     CPSE R13, R1
+0309  C00B     RJMP _ZN14Timer1Attiny8526setOutputCompareMatchValueEh5ocr_th
+030A  1191     CPSE R25, R1
+038C  10A1     CPSE R10, R1
+038D  C1C8     RJMP 0x556
+038E  1191     CPSE R25, R1
+038F  C1C5     RJMP 0x555
+043B  1081     CPSE R8, R1
+043C  C11F     RJMP 0x55C
+043D  1618     CP R1, R24
+043E  F40C     BRGE _ZN14Timer1Attiny854stopEh
+043F  C11B     RJMP 0x55B
+0476  1081     CPSE R8, R1
+0477  C0EA     RJMP 0x562
+0478  1618     CP R1, R24
+0479  F40C     BRGE _ZN14Timer1Attiny857cleanupEh
+047A  C0E6     RJMP 0x561
+04B0  1051     CPSE R5, R1
+04B1  C0B6     RJMP 0x568
+04B2  2B23     OR R18, R19
+04B3  F009     BREQ _ZN14Timer0Attiny8512setDutyCycleEhhh
+04B4  C0B2     RJMP 0x567
+050D  1051     CPSE R5, R1
+050E  C05F     RJMP 0x56E
+050F  1612     CP R1, R18
+0510  0613     CPC R1, R19
+0511  F40C     BRGE _ZN14Timer1Attiny859setPeriodEhh
+0512  C05A     RJMP 0x56D
+0547  1051     CPSE R5, R1
+0548  C02B     RJMP 0x574
+0549  1612     CP R1, R18
+054A  0613     CPC R1, R19
+054B  F13C     BRLT 0x573
+135:                               startTransmission = 1;
+0301  24BB     EOR R11, R11
+0302  94B3     INC R11
+0314  2CDB     MOV R13, R11
+0376  2455     EOR R5, R5
+0377  9453     INC R5
+042C  2444     EOR R4, R4
+042D  9443     INC R4
+0467  2444     EOR R4, R4
+0468  9443     INC R4
+04A6  2444     EOR R4, R4
+04A7  9443     INC R4
+0503  2444     EOR R4, R4
+0504  9443     INC R4
+053D  2444     EOR R4, R4
+053E  9443     INC R4
+0555  2CA5     MOV R10, R5
+055B  2C84     MOV R8, R4
+0561  2C84     MOV R8, R4
+0567  2C54     MOV R5, R4
+056D  2C54     MOV R5, R4
+0573  2C54     MOV R5, R4
+136:                           if (startTransmission)
+137:                               transmitByte('0' + temp);
+0315  E360     LDI R22, 0x30
+0316  0F69     ADD R22, R25
+0317  01C7     MOVW R24, R14
+0318  DF6C     RCALL _ZN14Timer0Attiny859configPwmEhh
+0319  CFF2     RJMP _ZN14Timer1Attiny8526setOutputCompareMatchValueEh5ocr_th
+0556  E360     LDI R22, 0x30
+0557  0F69     ADD R22, R25
+0558  01C8     MOVW R24, R16
+0559  DD2B     RCALL _ZN14Timer0Attiny859configPwmEhh
+055A  CE35     RJMP _ZN14Timer1Attiny8523configTimerCompareMatchEh5ocr_t
+055C  E360     LDI R22, 0x30
+055D  0F68     ADD R22, R24
+055E  01C8     MOVW R24, R16
+055F  DD25     RCALL _ZN14Timer0Attiny859configPwmEhh
+0560  CEDF     RJMP _ZN14Timer1Attiny854stopEh
+0562  E360     LDI R22, 0x30
+0563  0F68     ADD R22, R24
+0564  01C8     MOVW R24, R16
+0565  DD1F     RCALL _ZN14Timer0Attiny859configPwmEhh
+0566  CF14     RJMP _ZN14Timer1Attiny857cleanupEh
+0568  E360     LDI R22, 0x30
+0569  0F68     ADD R22, R24
+056A  01C8     MOVW R24, R16
+056B  DD19     RCALL _ZN14Timer0Attiny859configPwmEhh
+056C  CF48     RJMP _ZN14Timer0Attiny8512setDutyCycleEhhh
+056E  E360     LDI R22, 0x30
+056F  0F68     ADD R22, R24
+0570  01C8     MOVW R24, R16
+0571  DD13     RCALL _ZN14Timer0Attiny859configPwmEhh
+0572  CFA0     RJMP _ZN14Timer1Attiny859setPeriodEhh
+0574  E360     LDI R22, 0x30
+0575  0F68     ADD R22, R24
+0576  01C8     MOVW R24, R16
+0577  DD0D     RCALL _ZN14Timer0Attiny859configPwmEhh
+0578  CFD3     RJMP 0x54C
+138:                       }
+139:                   else if (argNum == -128L) {//'-' is send futher up the code
+140:                       transmitByte('1');
+0401  E361     LDI R22, 0x31
+0402  01C8     MOVW R24, R16
+0403  DE81     RCALL _ZN14Timer0Attiny859configPwmEhh
+141:                       transmitByte('2');
+0404  E362     LDI R22, 0x32
+0405  01C8     MOVW R24, R16
+0406  DE7E     RCALL _ZN14Timer0Attiny859configPwmEhh
+142:                       transmitByte('8');
+0407  E368     LDI R22, 0x38
+0408  01C8     MOVW R24, R16
+0409  DE7B     RCALL _ZN14Timer0Attiny859configPwmEhh
+143:                   } else {
+144:                       transmitByte('3');
+04CF  E363     LDI R22, 0x33
+04D0  01C8     MOVW R24, R16
+04D1  DDB3     RCALL _ZN14Timer0Attiny859configPwmEhh
+145:                       transmitByte('2');
+04D2  E362     LDI R22, 0x32
+04D3  01C8     MOVW R24, R16
+04D4  DDB0     RCALL _ZN14Timer0Attiny859configPwmEhh
+146:                       transmitByte('7');
+04D5  E367     LDI R22, 0x37
+04D6  01C8     MOVW R24, R16
+04D7  DDAD     RCALL _ZN14Timer0Attiny859configPwmEhh
+147:                       transmitByte('6');
+04D8  E366     LDI R22, 0x36
+04D9  01C8     MOVW R24, R16
+04DA  DDAA     RCALL _ZN14Timer0Attiny859configPwmEhh
+148:                       transmitByte('8');
+04DB  E368     LDI R22, 0x38
+04DC  01C8     MOVW R24, R16
+04DD  DDA7     RCALL _ZN14Timer0Attiny859configPwmEhh
+149:                   }
+150:               };
+031A  91DF     POP R29
+031B  91CF     POP R28
+031C  911F     POP R17
+031D  910F     POP R16
+031E  90FF     POP R15
+031F  90EF     POP R14
+0320  90DF     POP R13
+0321  90CF     POP R12
+0322  90BF     POP R11
+0323  9508     RET
+151:           
+152:           protected:
+153:               //implemented as singelton -> hidden constructor
+154:               //can only be called by class itself
+155:               UartTx(void);
+156:           
+157:           private:
+158:               ver_t version;
+159:               status_t status;
+160:               uint8_t ocrValue;
+161:               static UartTx pInstance;
+162:           
+163:               void transmitByte(uint8_t argByte);
+164:               status_t getStatus(void);
+165:               
+166:               uint8_t timerKey;
+167:               
+168:           #ifdef timer0
+169:               Timer0Attiny85* myTimer;
+170:           #endif
+171:           #ifdef timer1
+172:               Timer1Attiny85* myTimer;
+173:           #endif
+174:               
+175:               
+176:           };
+177:           
+178:           #endif	/* LIBUARTTX_H */
+179:           
+---  /home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libUartTx.X/libUartTx.cpp  -----------------
+1:             // see header for description and other information
+2:             // copyright applies according to LICENSE_software.md in GitHub root folder
+3:             
+4:             #include "libUartTx.h"
+5:             #include <avr/interrupt.h>
+6:             
+7:             UartTx UartTx::pInstance = UartTx(); //global declaration of static private variable
+02ED  E086     LDI R24, 0x06
+8:             
+9:             //timer0 compare A match interrupt
+10:            #ifdef timer0
+11:            
+12:            ISR(TIM0_COMPA_vect) {
+01B9  921F     PUSH R1
+01BA  920F     PUSH R0
+01BB  B60F     IN R0, 0x3F
+01BC  920F     PUSH R0
+01BD  2411     EOR R1, R1
+01BE  938F     PUSH R24
+01BF  939F     PUSH R25
+13:                uint16_t localTxShiftReg = txShiftReg;
+01C0  9180     LDS R24, 0x20D
+01C2  9190     LDS R25, 0x20E
+14:                //output LSB of the TX shift register at the TX pin
+15:                if (localTxShiftReg & 0x01) {
+01C4  FF80     SBRS R24, 0
+01C5  C002     RJMP _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+16:                    PORTB |= (1 << txPin);
+01C6  9AC2     SBI 0x18, 2
+01C7  C001     RJMP _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+17:                } else {
+18:                    PORTB &= ~(1 << txPin);
+01C8  98C2     CBI 0x18, 2
+19:                }
+20:                //shift the TX shift register one bit to the right
+21:                localTxShiftReg >>= 1;
+01C9  9596     LSR R25
+01CA  9587     ROR R24
+22:                txShiftReg = localTxShiftReg;
+01CB  9390     STS 0x20E, R25
+01CD  9380     STS 0x20D, R24
+23:                //if the stop bit has been sent, the shift register will be 0
+24:                //and the transmission is completed, so we can stop & reset timer0
+25:                if (!localTxShiftReg) {
+01CF  2B89     OR R24, R25
+01D0  F411     BRNE _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+26:                    TCCR0B = 0; //stop timer
+01D1  BE13     OUT 0x33, R1
+27:                    TCNT0 = 0; //reset timer counter //Todo test, if required
+01D2  BE12     OUT 0x32, R1
+28:                    //        TCCR0B = 0;
+29:                    //        TCNT0 = 0;
+30:                }
+31:            };
+01D3  919F     POP R25
+01D4  918F     POP R24
+01D5  900F     POP R0
+01D6  BE0F     OUT 0x3F, R0
+01D7  900F     POP R0
+01D8  901F     POP R1
+01D9  9518     RETI
+32:            #endif
+33:            
+34:            
+35:            
+36:            ISR(TIM0_OVF_vect){ //ToDo delete, if not required
+01DA  921F     PUSH R1
+01DB  920F     PUSH R0
+01DC  B60F     IN R0, 0x3F
+01DD  920F     PUSH R0
+01DE  2411     EOR R1, R1
+37:                TCNT0=0;
+01DF  BE12     OUT 0x32, R1
+38:            }
+01E0  900F     POP R0
+01E1  BE0F     OUT 0x3F, R0
+01E2  900F     POP R0
+01E3  901F     POP R1
+01E4  9518     RETI
+39:            
+40:            //timer1 compare A match interrupt
+41:            #ifdef timer1
+42:            
+43:            ISR(TIM1_COMPA_vect) {
+44:                uint16_t localTxShiftReg = txShiftReg;
+45:                //output LSB of the TX shift register at the TX pin
+46:                if (localTxShiftReg & 0x01) {
+47:                    PORTB |= (1 << txPin);
+48:                } else {
+49:                    PORTB &= ~(1 << txPin);
+50:                }
+51:                //shift the TX shift register one bit to the right
+52:                localTxShiftReg >>= 1;
+53:                txShiftReg = localTxShiftReg;
+54:                //if the stop bit has been sent, the shift register will be 0
+55:                //and the transmission is completed, so we can stop & reset timer0
+56:                if (!localTxShiftReg) {
+57:                    TCCR1 &= ~((1 << CS13) | (1 << CS12) | (1 << CS11) | (1 << CS10)); //stop timer
+58:                    TCNT1 = 0x00; //reset timer counter //Todo test, if required
+59:            
+60:                    //        TCCR0B = 0;
+61:                    //        TCNT0 = 0;
+62:                }
+63:            };
+64:            #endif  
+65:            
+66:            UartTx::UartTx(void) {
+01E5  930F     PUSH R16
+01E6  931F     PUSH R17
+01E7  93CF     PUSH R28
+01E8  93DF     PUSH R29
+01E9  D000     RCALL _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+01EA  B7CD     IN R28, 0x3D
+01EB  B7DE     IN R29, 0x3E
+01EC  018C     MOVW R16, R24
+67:                status = INIT_STATE;
+01ED  01DC     MOVW R26, R24
+01EE  9612     ADIW R26, 0x02
+01EF  921C     ST X, R1
+01F0  9712     SBIW R26, 0x02
+68:            
+69:                version.major = 0;
+01F1  921C     ST X, R1
+70:                version.minor = 1;
+01F2  E081     LDI R24, 0x01
+01F3  9611     ADIW R26, 0x01
+01F4  938C     ST X, R24
+71:            
+72:                libIOHandler myIOHandler;
+01F5  01CE     MOVW R24, R28
+01F6  9601     ADIW R24, 0x01
+01F7  DE4E     RCALL 0x46
+73:                myIOHandler.setPinOutput(txPin);
+01F8  E062     LDI R22, 0x02
+01F9  01CE     MOVW R24, R28
+01FA  9601     ADIW R24, 0x01
+01FB  DE71     RCALL __do_global_ctors
+74:            
+75:                timerKey = 0;
+01FC  01F8     MOVW R30, R16
+01FD  8214     STD Z+4, R1
+76:            #ifdef timer0
+77:                myTimer = Timer0Attiny85::getInstance();
+01FE  D816     RCALL 0xFFFFFFFFFFFFFA15
+01FF  01D8     MOVW R26, R16
+0200  9616     ADIW R26, 0x06
+0201  939C     ST X, R25
+0202  938E     ST -X, R24
+0203  9715     SBIW R26, 0x05
+78:            #endif
+79:            #ifdef timer1
+80:                myTimer = Timer1Attiny85::getInstance();
+81:            #endif
+82:                while (!timerKey) {//loop endlessly, if timer is locked by other user
+0204  9614     ADIW R26, 0x04
+0205  918C     LD R24, X
+0206  1181     CPSE R24, R1
+0207  C007     RJMP _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+020D  2388     AND R24, R24
+020E  F3C9     BREQ _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+83:                    timerKey = myTimer->pSemaphore.lock();
+0208  E08F     LDI R24, 0x0F
+0209  E092     LDI R25, 0x02
+020A  D82E     RCALL 0xFFFFFFFFFFFFFA39
+020B  01F8     MOVW R30, R16
+020C  8384     STD Z+4, R24
+84:                }
+85:            
+86:            #if  (BAUD != 9600)
+87:            #error "Uart Tx implemented for BAUD = 9600 only!"
+88:            #endif
+89:            
+90:                //set compare value to 103 to achieve a 9600 baud rate (i.e. 104µs)
+91:                //together with the 8MHz/8=1MHz timer clock*/
+92:                /*NOTE: since the internal 8MHz oscillator is not very accurate, this value can be tuned
+93:                  to achieve the desired baud rate, so if it doesn't work with the nominal value (103), try
+94:                  increasing or decreasing the value by 1 or 2 */
+95:                ocrValue = 103;
+020F  E697     LDI R25, 0x67
+0210  01D8     MOVW R26, R16
+0211  9613     ADIW R26, 0x03
+0212  939C     ST X, R25
+0213  9713     SBIW R26, 0x03
+96:                myTimer->setOutputCompareMatchValue(timerKey, OCR_A, ocrValue);
+0214  9615     ADIW R26, 0x05
+0215  900D     LD R0, X+
+0216  91BC     LD R27, X
+0217  2DA0     MOV R26, R0
+0218  91ED     LD R30, X+
+0219  91FC     LD R31, X
+021A  9711     SBIW R26, 0x01
+021B  8800     LDD R0, Z+16
+021C  89F1     LDD R31, Z+17
+021D  2DE0     MOV R30, R0
+021E  E627     LDI R18, 0x67
+021F  E040     LDI R20, 0x00
+0220  2F68     MOV R22, R24
+0221  01CD     MOVW R24, R26
+0222  9509     ICALL
+97:                myTimer->setPrescaler(timerKey, PRESCALER8);
+0223  01F8     MOVW R30, R16
+0224  8185     LDD R24, Z+5
+0225  8196     LDD R25, Z+6
+0226  01DC     MOVW R26, R24
+0227  91ED     LD R30, X+
+0228  91FC     LD R31, X
+0229  8406     LDD R0, Z+14
+022A  85F7     LDD R31, Z+15
+022B  2DE0     MOV R30, R0
+022C  E043     LDI R20, 0x03
+022D  01D8     MOVW R26, R16
+022E  9614     ADIW R26, 0x04
+022F  916C     LD R22, X
+0230  9509     ICALL
+98:                myTimer->configTimerCompareMatch(timerKey, OCR_A);
+0231  01F8     MOVW R30, R16
+0232  8185     LDD R24, Z+5
+0233  8196     LDD R25, Z+6
+0234  01DC     MOVW R26, R24
+0235  91ED     LD R30, X+
+0236  91FC     LD R31, X
+0237  8002     LDD R0, Z+2
+0238  81F3     LDD R31, Z+3
+0239  2DE0     MOV R30, R0
+023A  E040     LDI R20, 0x00
+023B  01D8     MOVW R26, R16
+023C  9614     ADIW R26, 0x04
+023D  916C     LD R22, X
+023E  9509     ICALL
+99:                myTimer->stop(timerKey);
+023F  01F8     MOVW R30, R16
+0240  8185     LDD R24, Z+5
+0241  8196     LDD R25, Z+6
+0242  01DC     MOVW R26, R24
+0243  91ED     LD R30, X+
+0244  91FC     LD R31, X
+0245  8402     LDD R0, Z+10
+0246  85F3     LDD R31, Z+11
+0247  2DE0     MOV R30, R0
+0248  01D8     MOVW R26, R16
+0249  9614     ADIW R26, 0x04
+024A  916C     LD R22, X
+024B  9509     ICALL
+100:           
+101:               //    //set timer0 to CTC mode
+102:               //    TCCR0A = (1 << WGM01);
+103:           
+104:               //enable output compare 0 A interrupt
+105:               //    TIMSK |= (1 << OCF0A);
+106:           
+107:               status = IDLE_STATE;
+024C  E081     LDI R24, 0x01
+024D  01F8     MOVW R30, R16
+024E  8382     STD Z+2, R24
+108:           
+109:               //enable interrupts
+110:               sei();
+024F  9478     SEI
+111:           };
+0250  900F     POP R0
+0251  900F     POP R0
+0252  91DF     POP R29
+0253  91CF     POP R28
+0254  911F     POP R17
+0255  910F     POP R16
+0256  9508     RET
+112:           
+113:           UartTx* UartTx::getInstance(void) {
+114:               return &pInstance;
+115:           }
+0257  E086     LDI R24, 0x06
+0258  E092     LDI R25, 0x02
+0259  9508     RET
+116:           
+117:           void UartTx::setOcrValue(uint8_t argOcr0aValue) {
+025A  93CF     PUSH R28
+025B  93DF     PUSH R29
+025C  01DC     MOVW R26, R24
+025D  2F26     MOV R18, R22
+118:               ocrValue = argOcr0aValue;
+025E  9613     ADIW R26, 0x03
+025F  936C     ST X, R22
+0260  9713     SBIW R26, 0x03
+119:               myTimer->setOutputCompareMatchValue(timerKey, OCR_A, argOcr0aValue);
+0261  9615     ADIW R26, 0x05
+0262  918D     LD R24, X+
+0263  919C     LD R25, X
+0264  9716     SBIW R26, 0x06
+0265  01EC     MOVW R28, R24
+0266  81E8     LD R30, Y
+0267  81F9     LDD R31, Y+1
+0268  8800     LDD R0, Z+16
+0269  89F1     LDD R31, Z+17
+026A  2DE0     MOV R30, R0
+026B  E040     LDI R20, 0x00
+026C  9614     ADIW R26, 0x04
+026D  916C     LD R22, X
+026E  9509     ICALL
+120:               //    OCR0A = ocr0aValue;
+121:           }
+026F  91DF     POP R29
+0270  91CF     POP R28
+0271  9508     RET
+122:           
+123:           status_t UartTx::getStatus() {
+0272  01FC     MOVW R30, R24
+124:               sei();
+0273  9478     SEI
+125:               const uint8_t localTxShiftReg = txShiftReg;
+0274  9180     LDS R24, 0x20D
+0276  9190     LDS R25, 0x20E
+126:               cli();
+0278  94F8     CLI
+127:           
+128:               if (status != ERROR_STATE) {
+0279  8192     LDD R25, Z+2
+027A  3093     CPI R25, 0x03
+027B  F039     BREQ _ZN14Timer0Attiny859configPwmEhh
+129:                   if (localTxShiftReg)
+027C  2388     AND R24, R24
+027D  F019     BREQ _ZN14Timer0Attiny859configPwmEhh
+130:                       status = BUSSY_STATE;
+027E  E082     LDI R24, 0x02
+027F  8382     STD Z+2, R24
+0280  C002     RJMP _ZN14Timer0Attiny859configPwmEhh
+131:                   else
+132:                       status = IDLE_STATE;
+0281  E081     LDI R24, 0x01
+0282  8382     STD Z+2, R24
+133:               }
+134:               return status;
+135:           };
+0283  8182     LDD R24, Z+2
+0284  9508     RET
+136:           
+137:           void UartTx::transmitByte(uint8_t argByte) {
+0285  931F     PUSH R17
+0286  93CF     PUSH R28
+0287  93DF     PUSH R29
+0288  01EC     MOVW R28, R24
+0289  2F16     MOV R17, R22
+138:               //wait until transmission is finished
+139:               //this might lead to a crash in the proramm, if for some reason, 
+140:               //the transmittion is never completed. ToDo Timeout?
+141:               while (getStatus() == BUSSY_STATE);
+028A  01CE     MOVW R24, R28
+028B  DFE6     RCALL _ZN14Timer0Attiny859configPwmEhh
+028C  3082     CPI R24, 0x02
+028D  F3E1     BREQ _ZN14Timer0Attiny854stopEh
+142:           
+143:               //fill the TX shift register witch the character to be sent and the start & stop bits (start bit (1<<0) is already 0)
+144:               uint16_t localTxShiftReg = (argByte << 1) | (1 << 9); //stop bit (1<<9)
+028E  2F81     MOV R24, R17
+028F  E090     LDI R25, 0x00
+0290  0F88     ADD R24, R24
+0291  1F99     ADC R25, R25
+0292  6092     ORI R25, 0x02
+145:           
+146:               cli();
+0293  94F8     CLI
+147:               txShiftReg = localTxShiftReg;
+0294  9390     STS 0x20E, R25
+0296  9380     STS 0x20D, R24
+148:               myTimer->start(timerKey);
+0298  818D     LDD R24, Y+5
+0299  819E     LDD R25, Y+6
+029A  01DC     MOVW R26, R24
+029B  91ED     LD R30, X+
+029C  91FC     LD R31, X
+029D  8400     LDD R0, Z+8
+029E  85F1     LDD R31, Z+9
+029F  2DE0     MOV R30, R0
+02A0  816C     LDD R22, Y+4
+02A1  9509     ICALL
+149:               //    TCCR0B = (1 << CS01); //start timer0 with a prescaler of 8
+150:               sei();
+02A2  9478     SEI
+151:           };
+02A3  91DF     POP R29
+02A4  91CF     POP R28
+02A5  911F     POP R17
+02A6  9508     RET
+152:           
+153:           void UartTx::printStr(const char* argString) {
+02A7  930F     PUSH R16
+02A8  931F     PUSH R17
+02A9  93CF     PUSH R28
+02AA  93DF     PUSH R29
+02AB  01EB     MOVW R28, R22
+154:               while (*argString) {
+02AC  8168     LD R22, Y
+02AD  2366     AND R22, R22
+02AE  F039     BREQ _ZN14Timer0Attiny857cleanupEh
+02AF  018C     MOVW R16, R24
+02B0  9621     ADIW R28, 0x01
+02B3  9169     LD R22, Y+
+02B4  1161     CPSE R22, R1
+02B5  CFFB     RJMP _ZN14Timer0Attiny857cleanupEh
+155:                   transmitByte(*argString++);
+02B1  01C8     MOVW R24, R16
+02B2  DFD2     RCALL _ZN14Timer0Attiny859configPwmEhh
+156:               }
+157:           };
+02B6  91DF     POP R29
+02B7  91CF     POP R28
+02B8  911F     POP R17
+02B9  910F     POP R16
+02BA  9508     RET
+158:           
+159:           void UartTx::printStrLn(const char* argString) {
+02BF  93CF     PUSH R28
+02C0  93DF     PUSH R29
+02C1  01EC     MOVW R28, R24
+160:               printStr(argString);
+02C2  DFE4     RCALL _ZN14Timer0Attiny857cleanupEh
+161:               printLn();
+02C3  01CE     MOVW R24, R28
+02C4  DFF6     RCALL _ZN14Timer0Attiny857cleanupEh
+162:           };
+02C5  91DF     POP R29
+02C6  91CF     POP R28
+02C7  9508     RET
+163:           
+164:           void UartTx::printLn(void) {
+165:               printStr("\n\r");
+02BB  E660     LDI R22, 0x60
+02BC  E070     LDI R23, 0x00
+02BD  DFE9     RCALL _ZN14Timer0Attiny857cleanupEh
+02BE  9508     RET
+166:           };
+167:           
+168:           void UartTx::printBinaryByte(uint8_t argByte) {
+02C8  92EF     PUSH R14
+02C9  92FF     PUSH R15
+02CA  931F     PUSH R17
+02CB  93CF     PUSH R28
+02CC  93DF     PUSH R29
+02CD  921F     PUSH R1
+02CE  B7CD     IN R28, 0x3D
+02CF  B7DE     IN R29, 0x3E
+02D0  017C     MOVW R14, R24
+02D1  8369     STD Y+1, R22
+169:               /* Prints out a byte as a series of 1's and 0's */
+170:               uint8_t bit;
+171:               for (bit = 7; bit < 255; bit--) {
+02D2  E017     LDI R17, 0x07
+02E4  5011     SUBI R17, 0x01
+02E5  F768     BRCC _ZN14Timer0Attiny857cleanupEh
+172:                   if (bit_is_set(argByte, bit))
+02D3  8189     LDD R24, Y+1
+02D4  E090     LDI R25, 0x00
+02D5  2E01     MOV R0, R17
+02D6  C002     RJMP _ZN14Timer0Attiny857cleanupEh
+02D7  9595     ASR R25
+02D8  9587     ROR R24
+02D9  940A     DEC R0
+02DA  F7E2     BRPL _ZN14Timer0Attiny857cleanupEh
+02DB  FF80     SBRS R24, 0
+02DC  C004     RJMP _ZN14Timer0Attiny857cleanupEh
+173:                       transmitByte('1');
+02DD  E361     LDI R22, 0x31
+02DE  01C7     MOVW R24, R14
+02DF  DFA5     RCALL _ZN14Timer0Attiny859configPwmEhh
+02E0  C003     RJMP _ZN14Timer0Attiny857cleanupEh
+174:                   else
+175:                       transmitByte('0');
+02E1  E360     LDI R22, 0x30
+02E2  01C7     MOVW R24, R14
+02E3  DFA1     RCALL _ZN14Timer0Attiny859configPwmEhh
+176:               }
+177:           };
+02E6  900F     POP R0
+02E7  91DF     POP R29
+02E8  91CF     POP R28
+02E9  911F     POP R17
+02EA  90FF     POP R15
+02EB  90EF     POP R14
+02EC  9508     RET
+---  /home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libUartTx.X/lib/libUtility.cpp  ------------
+1:             // see header for description and other information
+2:             // copyright applies according to LICENSE_software.md in GitHub root folder
+3:             
+4:             #include "libUtility.h"
+5:             
+6:             //required for copyLibs.py script. don't delete
+7:             //version.major = 0;
+8:             //version.minor = 2;
+9:             
+10:            const uint8_t SEMAPHORE_KEY = 42;
+11:            
+12:            Semaphore::Semaphore(uint8_t argMaxNumberOfUser){
+13:                maxNumberOfUser = argMaxNumberOfUser;
+0A35  01FC     MOVW R30, R24
+0A36  8361     STD Z+1, R22
+14:                userCount = 0;
+0A37  8210     ST Z, R1
+0A38  9508     RET
+15:            }
+16:            
+17:            uint8_t Semaphore::lock(void){
+0A39  01FC     MOVW R30, R24
+18:                if (userCount < maxNumberOfUser){
+0A3A  8190     LD R25, Z
+0A3B  8181     LDD R24, Z+1
+0A3C  1798     CP R25, R24
+0A3D  F420     BRCC 0xA42
+19:                    userCount++;
+0A3E  5F9F     SUBI R25, 0xFF
+0A3F  8390     ST Z, R25
+20:                    return SEMAPHORE_KEY;
+0A40  E28A     LDI R24, 0x2A
+0A41  9508     RET
+21:                }
+22:                else
+23:                    return 0;
+0A42  E080     LDI R24, 0x00
+24:            }
+0A43  9508     RET
+25:            
+26:            uint8_t Semaphore::checkKey(uint8_t argKey){
+0A44  E081     LDI R24, 0x01
+0A45  326A     CPI R22, 0x2A
+0A46  F009     BREQ 0xA48
+0A47  E080     LDI R24, 0x00
+27:                if(argKey == SEMAPHORE_KEY)
+28:                    return 1;
+29:                else
+30:                    return 0;
+31:            }
+0A48  9508     RET
+32:            
+33:            uint8_t Semaphore::unlock(uint8_t argKey){
+34:                if (userCount && checkKey(argKey)){
+35:                    userCount--;
+36:                    return 0;
+37:                }
+38:                return argKey;
+39:            }
+---  /home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libUartTx.X/lib/libTimer.cpp  --------------
+1:             // see header for description and other information
+2:             // copyright applies according to LICENSE_software.md in GitHub root folder
+3:             
+4:             #include "libTimer.h"
+5:             
+6:             //global declaration of static private members
+7:             Timer0Attiny85 Timer0Attiny85::pInstance = Timer0Attiny85();
+0A2A  E18B     LDI R24, 0x1B
+8:             Timer1Attiny85 Timer1Attiny85::pInstance = Timer1Attiny85();
+0A2D  E181     LDI R24, 0x11
+9:             Semaphore Timer::pSemaphore = Semaphore(1); //initialised as mutex
+0A30  E061     LDI R22, 0x01
+10:            
+11:            //------------------------------------------------------------------
+12:            // class Timer methods
+13:            //------------------------------------------------------------------
+14:            
+15:            Timer::Timer(void) {
+16:                version.major = 0;
+09FA  8212     STD Z+2, R1
+17:                version.minor = 1;
+09FB  E081     LDI R24, 0x01
+09FC  8383     STD Z+3, R24
+18:            
+19:                timerState = INIT_STATE;
+09FD  8214     STD Z+4, R1
+20:            };
+21:            
+22:            //------------------------------------------------------------------
+23:            // class TimerAttiny85 methods
+24:            //------------------------------------------------------------------
+25:            
+26:            TimerAttiny85::TimerAttiny85(void) : Timer() {
+09F9  01FC     MOVW R30, R24
+09FE  EA83     LDI R24, 0xA3
+09FF  E091     LDI R25, 0x01
+0A00  8391     STD Z+1, R25
+0A01  8380     ST Z, R24
+27:                prescaler = PRESCALER1024; // see ATiny85 data sheet p80
+0A02  E08A     LDI R24, 0x0A
+0A03  8385     STD Z+5, R24
+0A04  9508     RET
+28:            };
+29:            
+30:            uint8_t TimerAttiny85::calculateDutyCycleRegisterValue(uint8_t argTop) {
+31:                uint8_t dutyCycleResigerValue = (uint8_t) ((uint16_t) argTop * (uint16_t) dutyCycle / 100UL);
+0993  8589     LDD R24, Y+9
+099F  8589     LDD R24, Y+9
+09C1  8528     LDD R18, Y+8
+09DC  8528     LDD R18, Y+8
+09DD  E030     LDI R19, 0x00
+09DE  01C9     MOVW R24, R18
+09DF  9582     SWAP R24
+09E0  9592     SWAP R25
+09E1  7F90     ANDI R25, 0xF0
+09E2  2798     EOR R25, R24
+09E3  7F80     ANDI R24, 0xF0
+09E4  2798     EOR R25, R24
+09E5  1B82     SUB R24, R18
+09E6  0B93     SBC R25, R19
+09E7  019C     MOVW R18, R24
+09E8  9522     SWAP R18
+09E9  9532     SWAP R19
+09EA  7F30     ANDI R19, 0xF0
+09EB  2732     EOR R19, R18
+09EC  7F20     ANDI R18, 0xF0
+09ED  2732     EOR R19, R18
+09EE  0F82     ADD R24, R18
+09EF  1F93     ADC R25, R19
+09F0  E664     LDI R22, 0x64
+09F1  E070     LDI R23, 0x00
+09F2  D080     RCALL 0xA73
+32:                return dutyCycleResigerValue;
+33:            }
+34:            
+35:            //------------------------------------------------------------------
+36:            // class Timer0Attiny85 methods
+37:            //------------------------------------------------------------------
+38:            
+39:            Timer0Attiny85::Timer0Attiny85(void) : TimerAttiny85() {
+0A05  93CF     PUSH R28
+0A06  93DF     PUSH R29
+0A07  01EC     MOVW R28, R24
+0A08  DFF0     RCALL 0x9F9
+0A09  EC85     LDI R24, 0xC5
+0A0A  E091     LDI R25, 0x01
+0A0B  8399     STD Y+1, R25
+0A0C  8388     ST Y, R24
+40:            //    prescaler = PRESCALER1024; // see ATiny85 data sheet p80
+41:                outputCompareMatchValueA = 255; //OCR0A data sheet p80
+0A0D  EF8F     LDI R24, 0xFF
+0A0E  838E     STD Y+6, R24
+42:                outputCompareMatchValueB = 255; //OCR0B data sheet p80
+0A0F  838F     STD Y+7, R24
+43:                dutyCycle = 100; //in %
+0A10  E684     LDI R24, 0x64
+0A11  8788     STD Y+8, R24
+44:            };
+0A12  91DF     POP R29
+0A13  91CF     POP R28
+0A14  9508     RET
+45:            
+46:            Timer0Attiny85* Timer0Attiny85::getInstance(void) {
+47:            #ifndef __AVR_ATtiny85__
+48:            #error "libTimer not implemented for selected MUC."
+49:            #endif
+50:                return &pInstance;
+51:            }
+0A15  E18B     LDI R24, 0x1B
+0A16  E092     LDI R25, 0x02
+0A17  9508     RET
+52:            
+53:            void Timer0Attiny85::setPrescaler(uint8_t argSemaphoreKey, clockPrescaler_t argPrescaler) {
+0640  931F     PUSH R17
+0641  93CF     PUSH R28
+0642  93DF     PUSH R29
+0643  01EC     MOVW R28, R24
+0644  2F14     MOV R17, R20
+54:                if (pSemaphore.checkKey(argSemaphoreKey)) {
+0645  E08F     LDI R24, 0x0F
+0646  E092     LDI R25, 0x02
+0647  D3FC     RCALL 0xA44
+0648  2388     AND R24, R24
+0649  F059     BREQ 0x655
+55:                    prescaler = argPrescaler;
+064A  831D     STD Y+5, R17
+56:                    if (timerState == BUSSY_STATE) {//update register only, when allready running. Otherwise timer will be started
+064B  818C     LDD R24, Y+4
+064C  3082     CPI R24, 0x02
+064D  F439     BRNE 0x655
+57:                        setPrescalerRegister();
+064E  81E8     LD R30, Y
+064F  81F9     LDD R31, Y+1
+0650  8C04     LDD R0, Z+28
+0651  8DF5     LDD R31, Z+29
+0652  2DE0     MOV R30, R0
+0653  01CE     MOVW R24, R28
+0654  9509     ICALL
+58:                    }
+59:                }
+60:            }
+0655  91DF     POP R29
+0656  91CF     POP R28
+0657  911F     POP R17
+0658  9508     RET
+61:            
+62:            void Timer0Attiny85::setOutputCompareMatchValue(uint8_t argSemaphoreKey, ocr_t argOcrSelect, uint8_t argOcrValue) {
+0659  92FF     PUSH R15
+065A  930F     PUSH R16
+065B  931F     PUSH R17
+065C  93CF     PUSH R28
+065D  93DF     PUSH R29
+065E  01EC     MOVW R28, R24
+065F  2F16     MOV R17, R22
+0660  2F04     MOV R16, R20
+0661  2EF2     MOV R15, R18
+63:                if (pSemaphore.checkKey(argSemaphoreKey)) {
+0662  E08F     LDI R24, 0x0F
+0663  E092     LDI R25, 0x02
+0664  D3DF     RCALL 0xA44
+0665  2388     AND R24, R24
+0666  F091     BREQ 0x679
+64:                    if (argOcrSelect == OCR_A) {
+0667  1101     CPSE R16, R1
+0668  C003     RJMP 0x66C
+65:                        outputCompareMatchValueA = argOcrValue;
+0669  82FE     STD Y+6, R15
+66:                        OCR0A = outputCompareMatchValueA;
+066A  BCF9     OUT 0x29, R15
+066B  C004     RJMP 0x670
+67:                    } else if (argOcrSelect == OCR_B) {
+066C  3001     CPI R16, 0x01
+066D  F411     BRNE 0x670
+68:                        outputCompareMatchValueB = argOcrValue;
+066E  82FF     STD Y+7, R15
+69:                        OCR0B = outputCompareMatchValueB;
+066F  BCF8     OUT 0x28, R15
+70:                    }
+71:                    activateOutputCompareMatchInterrupt(argSemaphoreKey, argOcrSelect);
+0670  81E8     LD R30, Y
+0671  81F9     LDD R31, Y+1
+0672  8802     LDD R0, Z+18
+0673  89F3     LDD R31, Z+19
+0674  2DE0     MOV R30, R0
+0675  2F40     MOV R20, R16
+0676  2F61     MOV R22, R17
+0677  01CE     MOVW R24, R28
+0678  9509     ICALL
+72:                }
+73:            }
+0679  91DF     POP R29
+067A  91CF     POP R28
+067B  911F     POP R17
+067C  910F     POP R16
+067D  90FF     POP R15
+067E  9508     RET
+74:            
+75:            void Timer0Attiny85::activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
+067F  93CF     PUSH R28
+0680  2FC4     MOV R28, R20
+76:                //sei() musst be called by the user/application
+77:                if (pSemaphore.checkKey(argSemaphoreKey)) {
+0681  E08F     LDI R24, 0x0F
+0682  E092     LDI R25, 0x02
+0683  D3C0     RCALL 0xA44
+0684  2388     AND R24, R24
+0685  F089     BREQ 0x697
+78:                    if (argOcrSelect == OCR_A) {
+0686  11C1     CPSE R28, R1
+0687  C007     RJMP 0x68F
+79:                        TIMSK |= (1 << OCIE0A);
+0688  B789     IN R24, 0x39
+0689  6180     ORI R24, 0x10
+068A  BF89     OUT 0x39, R24
+80:                        TIMSK &= ~(1 << OCIE0B);
+068B  B789     IN R24, 0x39
+068C  7F87     ANDI R24, 0xF7
+068D  BF89     OUT 0x39, R24
+068E  C008     RJMP 0x697
+81:                    } else if (argOcrSelect == OCR_B) {
+068F  30C1     CPI R28, 0x01
+0690  F431     BRNE 0x697
+82:                        TIMSK |= (1 << OCIE0B);
+0691  B789     IN R24, 0x39
+0692  6088     ORI R24, 0x08
+0693  BF89     OUT 0x39, R24
+83:                        TIMSK &= ~(1 << OCIE0A);
+0694  B789     IN R24, 0x39
+0695  7E8F     ANDI R24, 0xEF
+0696  BF89     OUT 0x39, R24
+84:                    }
+85:                }
+86:            }
+0697  91CF     POP R28
+0698  9508     RET
+87:            
+88:            void Timer0Attiny85::deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
+0699  93CF     PUSH R28
+069A  2FC4     MOV R28, R20
+89:                //        cli() musst be called by user/application
+90:                if (pSemaphore.checkKey(argSemaphoreKey)) {
+069B  E08F     LDI R24, 0x0F
+069C  E092     LDI R25, 0x02
+069D  D3A6     RCALL 0xA44
+069E  2388     AND R24, R24
+069F  F059     BREQ 0x6AB
+91:                    if (argOcrSelect == OCR_A) {
+06A0  11C1     CPSE R28, R1
+06A1  C004     RJMP 0x6A6
+92:                        TIMSK &= ~(1 << OCIE0A);
+06A2  B789     IN R24, 0x39
+06A3  7E8F     ANDI R24, 0xEF
+06A4  BF89     OUT 0x39, R24
+06A5  C005     RJMP 0x6AB
+93:                    } else if (argOcrSelect == OCR_B) {
+06A6  30C1     CPI R28, 0x01
+06A7  F419     BRNE 0x6AB
+94:                        TIMSK &= ~(1 << OCIE0B);
+06A8  B789     IN R24, 0x39
+06A9  7F87     ANDI R24, 0xF7
+06AA  BF89     OUT 0x39, R24
+95:                    }
+96:                }
+97:            }
+06AB  91CF     POP R28
+06AC  9508     RET
+98:            
+99:            void Timer0Attiny85::activateOverflowInterrupt(uint8_t argSemaphoreKey) {
+100:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+06AD  E08F     LDI R24, 0x0F
+06AE  E092     LDI R25, 0x02
+06AF  D394     RCALL 0xA44
+06B0  2388     AND R24, R24
+06B1  F019     BREQ 0x6B5
+101:                   TIMSK |= (1 << TOIE0);
+06B2  B789     IN R24, 0x39
+06B3  6082     ORI R24, 0x02
+06B4  BF89     OUT 0x39, R24
+06B5  9508     RET
+102:               }
+103:           }
+104:           
+105:           void Timer0Attiny85::deactivateOverflowInterrupt(uint8_t argSemaphoreKey) {
+106:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+06B6  E08F     LDI R24, 0x0F
+06B7  E092     LDI R25, 0x02
+06B8  D38B     RCALL 0xA44
+06B9  2388     AND R24, R24
+06BA  F019     BREQ 0x6BE
+107:                   TIMSK &= ~(1 << TOIE0);
+06BB  B789     IN R24, 0x39
+06BC  7F8D     ANDI R24, 0xFD
+06BD  BF89     OUT 0x39, R24
+06BE  9508     RET
+108:               }
+109:           }
+110:           
+111:           void Timer0Attiny85::configTimerCompareMatch(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
+06BF  930F     PUSH R16
+06C0  931F     PUSH R17
+06C1  93CF     PUSH R28
+06C2  93DF     PUSH R29
+06C3  01EC     MOVW R28, R24
+06C4  2F16     MOV R17, R22
+06C5  2F04     MOV R16, R20
+112:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+06C6  E08F     LDI R24, 0x0F
+06C7  E092     LDI R25, 0x02
+06C8  D37B     RCALL 0xA44
+06C9  2388     AND R24, R24
+06CA  F1B1     BREQ 0x701
+113:                   if (timerState == BUSSY_STATE) {
+06CB  818C     LDD R24, Y+4
+06CC  3082     CPI R24, 0x02
+06CD  F481     BRNE 0x6DE
+114:                       stop(argSemaphoreKey);
+06CE  81E8     LD R30, Y
+06CF  81F9     LDD R31, Y+1
+06D0  8402     LDD R0, Z+10
+06D1  85F3     LDD R31, Z+11
+06D2  2DE0     MOV R30, R0
+06D3  2F61     MOV R22, R17
+06D4  01CE     MOVW R24, R28
+06D5  9509     ICALL
+115:                       reset(argSemaphoreKey);
+06D6  81E8     LD R30, Y
+06D7  81F9     LDD R31, Y+1
+06D8  8404     LDD R0, Z+12
+06D9  85F5     LDD R31, Z+13
+06DA  2DE0     MOV R30, R0
+06DB  2F61     MOV R22, R17
+06DC  01CE     MOVW R24, R28
+06DD  9509     ICALL
+116:                   }
+117:                   if (argOcrSelect == OCR_A) {
+06DE  1101     CPSE R16, R1
+06DF  C003     RJMP 0x6E3
+118:                       OCR0A = outputCompareMatchValueA;
+06E0  818E     LDD R24, Y+6
+06E1  BD89     OUT 0x29, R24
+06E2  C004     RJMP 0x6E7
+119:                   } else if (argOcrSelect == OCR_B) {
+06E3  3001     CPI R16, 0x01
+06E4  F411     BRNE 0x6E7
+120:                       OCR0B = outputCompareMatchValueB;
+06E5  818F     LDD R24, Y+7
+06E6  BD88     OUT 0x28, R24
+121:                   }
+122:           
+123:                   //CTC mode data sheet p 79
+124:                   TCCR0B &= ~((1 << WGM02) | (1 << WGM00));
+06E7  B783     IN R24, 0x33
+06E8  7F86     ANDI R24, 0xF6
+06E9  BF83     OUT 0x33, R24
+125:                   TCCR0A |= (1 << WGM01);
+06EA  B58A     IN R24, 0x2A
+06EB  6082     ORI R24, 0x02
+06EC  BD8A     OUT 0x2A, R24
+126:           
+127:                   //normal port operation -> datasheet p 78
+128:                   TCCR0A &= ~((1 << COM0A1) | (1 << COM0A0) | (1 << COM0B1) | (1 << COM0B0));
+06ED  B58A     IN R24, 0x2A
+06EE  708F     ANDI R24, 0x0F
+06EF  BD8A     OUT 0x2A, R24
+129:           
+130:                   activateOutputCompareMatchInterrupt(argSemaphoreKey, argOcrSelect);
+06F0  81E8     LD R30, Y
+06F1  81F9     LDD R31, Y+1
+06F2  8802     LDD R0, Z+18
+06F3  89F3     LDD R31, Z+19
+06F4  2DE0     MOV R30, R0
+06F5  2F40     MOV R20, R16
+06F6  2F61     MOV R22, R17
+06F7  01CE     MOVW R24, R28
+06F8  9509     ICALL
+131:                   start(argSemaphoreKey);
+06F9  81E8     LD R30, Y
+06FA  81F9     LDD R31, Y+1
+06FB  8400     LDD R0, Z+8
+06FC  85F1     LDD R31, Z+9
+06FD  2DE0     MOV R30, R0
+06FE  2F61     MOV R22, R17
+06FF  01CE     MOVW R24, R28
+0700  9509     ICALL
+132:               }
+133:           }
+0701  91DF     POP R29
+0702  91CF     POP R28
+0703  911F     POP R17
+0704  910F     POP R16
+0705  9508     RET
+134:           
+135:           void Timer0Attiny85::configTimerOverflow(uint8_t argSemaphoreKey) {
+0706  931F     PUSH R17
+0707  93CF     PUSH R28
+0708  93DF     PUSH R29
+0709  01EC     MOVW R28, R24
+070A  2F16     MOV R17, R22
+136:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+070B  E08F     LDI R24, 0x0F
+070C  E092     LDI R25, 0x02
+070D  D336     RCALL 0xA44
+070E  2388     AND R24, R24
+070F  F0F1     BREQ 0x72E
+137:                   //if neither PWM nor compare match timer is set, set to normal mode
+138:                   //otherwise, don't change the setting of the running mode
+139:                   if (timerState != BUSSY_STATE) {
+0710  818C     LDD R24, Y+4
+0711  3082     CPI R24, 0x02
+0712  F059     BREQ 0x71E
+140:                       //normal mode data sheet p 79
+141:                       TCCR0B &= ~(1 << WGM02);
+0713  B783     IN R24, 0x33
+0714  7F87     ANDI R24, 0xF7
+0715  BF83     OUT 0x33, R24
+142:                       TCCR0A &= ~((1 << WGM01) | (1 << WGM00));
+0716  B58A     IN R24, 0x2A
+0717  7F8C     ANDI R24, 0xFC
+0718  BD8A     OUT 0x2A, R24
+143:           
+144:                       //normal port operation -> datasheet p 78
+145:                       TCCR0A &= ~((1 << COM0A1) | (1 << COM0A0) | (1 << COM0B1) | (1 << COM0B0));
+0719  B58A     IN R24, 0x2A
+071A  708F     ANDI R24, 0x0F
+071B  BD8A     OUT 0x2A, R24
+146:           
+147:                       timerState = IDLE_STATE;
+071C  E081     LDI R24, 0x01
+071D  838C     STD Y+4, R24
+148:                   }
+149:                   activateOverflowInterrupt(argSemaphoreKey);
+071E  81E8     LD R30, Y
+071F  81F9     LDD R31, Y+1
+0720  8806     LDD R0, Z+22
+0721  89F7     LDD R31, Z+23
+0722  2DE0     MOV R30, R0
+0723  2F61     MOV R22, R17
+0724  01CE     MOVW R24, R28
+0725  9509     ICALL
+150:           
+151:                   start(argSemaphoreKey);
+0726  81E8     LD R30, Y
+0727  81F9     LDD R31, Y+1
+0728  8400     LDD R0, Z+8
+0729  85F1     LDD R31, Z+9
+072A  2DE0     MOV R30, R0
+072B  2F61     MOV R22, R17
+072C  01CE     MOVW R24, R28
+072D  9509     ICALL
+152:               }
+153:           }
+072E  91DF     POP R29
+072F  91CF     POP R28
+0730  911F     POP R17
+0731  9508     RET
+154:           
+155:           void Timer0Attiny85::setDutyCycle(uint8_t argSemaphoreKey, uint8_t argPin, uint8_t argDutyCycle) {
+09AD  930F     PUSH R16
+09AE  931F     PUSH R17
+09AF  93CF     PUSH R28
+09B0  93DF     PUSH R29
+09B1  01EC     MOVW R28, R24
+09B2  2F14     MOV R17, R20
+09B3  2F02     MOV R16, R18
+156:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+09B4  E08F     LDI R24, 0x0F
+09B5  E092     LDI R25, 0x02
+09B6  D08D     RCALL 0xA44
+09B7  2388     AND R24, R24
+09B8  F1D9     BREQ 0x9F4
+157:                   if (argDutyCycle > 100)
+09B9  3605     CPI R16, 0x65
+09BA  F018     BRCS 0x9BE
+158:                       dutyCycle = 100;
+09BB  E684     LDI R24, 0x64
+09BC  8788     STD Y+8, R24
+09BD  C001     RJMP 0x9BF
+159:                   else
+160:                       dutyCycle = argDutyCycle;
+09BE  8708     STD Y+8, R16
+161:                   if (argPin == PB0)
+09BF  1111     CPSE R17, R1
+09C0  C019     RJMP 0x9DA
+162:                       OCR0A = calculateDutyCycleRegisterValue(255);
+09D8  BD69     OUT 0x29, R22
+09D9  C01A     RJMP 0x9F4
+163:                   else if (argPin == PB1)
+09DA  3011     CPI R17, 0x01
+09DB  F4C1     BRNE 0x9F4
+164:                       OCR0B = calculateDutyCycleRegisterValue(255);
+09F3  BD68     OUT 0x28, R22
+165:               }
+166:           }
+09F4  91DF     POP R29
+09F5  91CF     POP R28
+09F6  911F     POP R17
+09F7  910F     POP R16
+09F8  9508     RET
+167:           
+168:           void Timer0Attiny85::configPwm(uint8_t argSemaphoreKey, uint8_t argPin) {
+0732  930F     PUSH R16
+0733  931F     PUSH R17
+0734  93CF     PUSH R28
+0735  93DF     PUSH R29
+0736  01EC     MOVW R28, R24
+0737  2F16     MOV R17, R22
+0738  2F04     MOV R16, R20
+169:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+0739  E08F     LDI R24, 0x0F
+073A  E092     LDI R25, 0x02
+073B  D308     RCALL 0xA44
+073C  2388     AND R24, R24
+073D  F409     BRNE 0x73F
+073E  C03F     RJMP 0x77E
+170:                   if (timerState == BUSSY_STATE) {
+073F  818C     LDD R24, Y+4
+0740  3082     CPI R24, 0x02
+0741  F481     BRNE 0x752
+171:                       stop(argSemaphoreKey);
+0742  81E8     LD R30, Y
+0743  81F9     LDD R31, Y+1
+0744  8402     LDD R0, Z+10
+0745  85F3     LDD R31, Z+11
+0746  2DE0     MOV R30, R0
+0747  2F61     MOV R22, R17
+0748  01CE     MOVW R24, R28
+0749  9509     ICALL
+172:                       reset(argSemaphoreKey);
+074A  81E8     LD R30, Y
+074B  81F9     LDD R31, Y+1
+074C  8404     LDD R0, Z+12
+074D  85F5     LDD R31, Z+13
+074E  2DE0     MOV R30, R0
+074F  2F61     MOV R22, R17
+0750  01CE     MOVW R24, R28
+0751  9509     ICALL
+173:                   }
+174:           
+175:                   setDutyCycle(argSemaphoreKey, argPin, dutyCycle);
+0752  81E8     LD R30, Y
+0753  81F9     LDD R31, Y+1
+0754  8C02     LDD R0, Z+26
+0755  8DF3     LDD R31, Z+27
+0756  2DE0     MOV R30, R0
+0757  8528     LDD R18, Y+8
+0758  2F40     MOV R20, R16
+0759  2F61     MOV R22, R17
+075A  01CE     MOVW R24, R28
+075B  9509     ICALL
+176:           
+177:                   //config fast PWM , Top = 0xff data sheet p 79
+178:                   TCCR0B &= ~(1 << WGM02);
+075C  B783     IN R24, 0x33
+075D  7F87     ANDI R24, 0xF7
+075E  BF83     OUT 0x33, R24
+179:                   TCCR0A |= ((1 << WGM01) | (1 << WGM00));
+075F  B58A     IN R24, 0x2A
+0760  6083     ORI R24, 0x03
+0761  BD8A     OUT 0x2A, R24
+180:           
+181:                   //clear output pin on compare match, set at bottom -> datasheet p 78
+182:                   if (argPin == PB0) {
+0762  1101     CPSE R16, R1
+0763  C007     RJMP 0x76B
+183:                       TCCR0A |= (1 << COM0A1);
+0764  B58A     IN R24, 0x2A
+0765  6880     ORI R24, 0x80
+0766  BD8A     OUT 0x2A, R24
+184:                       TCCR0A &= ~(1 << COM0A0);
+0767  B58A     IN R24, 0x2A
+0768  7B8F     ANDI R24, 0xBF
+0769  BD8A     OUT 0x2A, R24
+076A  C008     RJMP 0x773
+185:                   } else if (argPin == PB1) {
+076B  3001     CPI R16, 0x01
+076C  F431     BRNE 0x773
+186:                       TCCR0A |= (1 << COM0B1);
+076D  B58A     IN R24, 0x2A
+076E  6280     ORI R24, 0x20
+076F  BD8A     OUT 0x2A, R24
+187:                       TCCR0A &= ~(1 << COM0B0);
+0770  B58A     IN R24, 0x2A
+0771  7E8F     ANDI R24, 0xEF
+0772  BD8A     OUT 0x2A, R24
+188:                   }
+189:           
+190:                   //no compare match interrupt required
+191:                   TIMSK &= ~((1 << OCIE0A) | (1 << OCIE0B));
+0773  B789     IN R24, 0x39
+0774  7E87     ANDI R24, 0xE7
+0775  BF89     OUT 0x39, R24
+192:           
+193:                   start(argSemaphoreKey);
+0776  81E8     LD R30, Y
+0777  81F9     LDD R31, Y+1
+0778  8400     LDD R0, Z+8
+0779  85F1     LDD R31, Z+9
+077A  2DE0     MOV R30, R0
+077B  2F61     MOV R22, R17
+077C  01CE     MOVW R24, R28
+077D  9509     ICALL
+194:               }
+195:           }
+077E  91DF     POP R29
+077F  91CF     POP R28
+0780  911F     POP R17
+0781  910F     POP R16
+0782  9508     RET
+196:           
+197:           void Timer0Attiny85::setPrescalerRegister(void) {
+198:               //data sheet p 80
+199:               prescaler = PRESCALER8;
+05BF  E023     LDI R18, 0x03
+05C0  01FC     MOVW R30, R24
+05C1  8325     STD Z+5, R18
+200:               switch (prescaler) {
+201:                   case PRESCALER1:
+202:                       TCCR0B &= ~((1 << CS02) | (1 << CS01));
+203:                       TCCR0B |= (1 << CS00);
+204:                       break;
+205:                   case PRESCALER8:
+206:                       TCCR0B &= ~((1 << CS02) | (1 << CS00));
+05C2  B783     IN R24, 0x33
+05C3  7F8A     ANDI R24, 0xFA
+05C4  BF83     OUT 0x33, R24
+207:                       TCCR0B |= (1 << CS01);
+05C5  B783     IN R24, 0x33
+05C6  6082     ORI R24, 0x02
+05C7  BF83     OUT 0x33, R24
+05C8  9508     RET
+208:                       break;
+209:                   case PRESCALER64:
+210:                       TCCR0B &= ~(1 << CS02);
+211:                       TCCR0B |= ((1 << CS01) | (1 << CS00));
+212:                       break;
+213:                   case PRESCALER256:
+214:                       TCCR0B |= (1 << CS02);
+215:                       TCCR0B &= ~((1 << CS01) | (1 << CS00));
+216:                       break;
+217:                   case PRESCALER1024:
+218:                       TCCR0B |= ((1 << CS02) | (1 << CS00));
+219:                       TCCR0B &= ~(1 << CS01);
+220:                       break;
+221:                   default://any unavailable prescaler will set the timer to stop
+222:                       TCCR0B &= ~((1 << CS02) | (1 << CS01) | (1 << CS00));
+223:                       break;
+224:               }
+225:           }
+226:           
+227:           void Timer0Attiny85::start(uint8_t argSemaphoreKey) {
+0783  931F     PUSH R17
+0784  93CF     PUSH R28
+0785  93DF     PUSH R29
+0786  01EC     MOVW R28, R24
+0787  2F16     MOV R17, R22
+228:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+0788  E08F     LDI R24, 0x0F
+0789  E092     LDI R25, 0x02
+078A  D2B9     RCALL 0xA44
+078B  2388     AND R24, R24
+078C  F089     BREQ 0x79E
+229:                   timerState = BUSSY_STATE;
+078D  E082     LDI R24, 0x02
+078E  838C     STD Y+4, R24
+230:                   reset(argSemaphoreKey);
+078F  81E8     LD R30, Y
+0790  81F9     LDD R31, Y+1
+0791  8404     LDD R0, Z+12
+0792  85F5     LDD R31, Z+13
+0793  2DE0     MOV R30, R0
+0794  2F61     MOV R22, R17
+0795  01CE     MOVW R24, R28
+0796  9509     ICALL
+231:           //        prescaler = PRESCALER8;//doesn't work
+232:                   setPrescalerRegister();
+0797  81E8     LD R30, Y
+0798  81F9     LDD R31, Y+1
+0799  8C04     LDD R0, Z+28
+079A  8DF5     LDD R31, Z+29
+079B  2DE0     MOV R30, R0
+079C  01CE     MOVW R24, R28
+079D  9509     ICALL
+233:               }
+234:           }
+079E  91DF     POP R29
+079F  91CF     POP R28
+07A0  911F     POP R17
+07A1  9508     RET
+235:           
+236:           void Timer0Attiny85::stop(uint8_t argSemaphoreKey) {
+07A2  93CF     PUSH R28
+07A3  93DF     PUSH R29
+07A4  01EC     MOVW R28, R24
+237:               //data sheet p 80
+238:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+07A5  E08F     LDI R24, 0x0F
+07A6  E092     LDI R25, 0x02
+07A7  D29C     RCALL 0xA44
+07A8  2388     AND R24, R24
+07A9  F029     BREQ 0x7AF
+239:                   timerState = IDLE_STATE;
+07AA  E081     LDI R24, 0x01
+07AB  838C     STD Y+4, R24
+240:                   TCCR0B &= ~((1 << CS02) | (1 << CS01) | (1 << CS00));
+07AC  B783     IN R24, 0x33
+07AD  7F88     ANDI R24, 0xF8
+07AE  BF83     OUT 0x33, R24
+241:               }
+242:           }
+07AF  91DF     POP R29
+07B0  91CF     POP R28
+07B1  9508     RET
+243:           
+244:           void Timer0Attiny85::reset(uint8_t argSemaphoreKey) {
+245:               if (pSemaphore.checkKey(argSemaphoreKey))
+07B2  E08F     LDI R24, 0x0F
+07B3  E092     LDI R25, 0x02
+07B4  D28F     RCALL 0xA44
+07B5  1181     CPSE R24, R1
+246:                   TCNT0 = 0x00; //reset counter register data sheet p 80
+07B6  BE12     OUT 0x32, R1
+07B7  9508     RET
+247:           }
+248:           
+249:           void Timer0Attiny85::cleanup(uint8_t argSemaphoreKey) {
+07B8  931F     PUSH R17
+07B9  93CF     PUSH R28
+07BA  93DF     PUSH R29
+07BB  01EC     MOVW R28, R24
+07BC  2F16     MOV R17, R22
+250:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+07BD  E08F     LDI R24, 0x0F
+07BE  E092     LDI R25, 0x02
+07BF  D284     RCALL 0xA44
+07C0  2388     AND R24, R24
+07C1  F0B1     BREQ 0x7D8
+251:                   stop(argSemaphoreKey);
+07C2  81E8     LD R30, Y
+07C3  81F9     LDD R31, Y+1
+07C4  8402     LDD R0, Z+10
+07C5  85F3     LDD R31, Z+11
+07C6  2DE0     MOV R30, R0
+07C7  2F61     MOV R22, R17
+07C8  01CE     MOVW R24, R28
+07C9  9509     ICALL
+252:                   reset(argSemaphoreKey);
+07CA  81E8     LD R30, Y
+07CB  81F9     LDD R31, Y+1
+07CC  8404     LDD R0, Z+12
+07CD  85F5     LDD R31, Z+13
+07CE  2DE0     MOV R30, R0
+07CF  2F61     MOV R22, R17
+07D0  01CE     MOVW R24, R28
+07D1  9509     ICALL
+253:                   TCCR0A = 0x00; //reset timer control register data sheet p 80
+07D2  BC1A     OUT 0x2A, R1
+254:                   TCCR0B = 0x00;
+07D3  BE13     OUT 0x33, R1
+255:                   //reset interrupt mask register data sheet p 81
+256:                   TIMSK &= ~((1 << OCIE0A) | (1 << OCIE0B) | (1 << TOIE0));
+07D4  B789     IN R24, 0x39
+07D5  7E85     ANDI R24, 0xE5
+07D6  BF89     OUT 0x39, R24
+257:                   timerState = INIT_STATE;
+07D7  821C     STD Y+4, R1
+258:               }
+259:           }
+07D8  91DF     POP R29
+07D9  91CF     POP R28
+07DA  911F     POP R17
+07DB  9508     RET
+260:           
+261:           //------------------------------------------------------------------
+262:           // class Timer1Attiny85 methods
+263:           //------------------------------------------------------------------
+264:           
+265:           Timer1Attiny85::Timer1Attiny85(void) : TimerAttiny85() {
+0A18  93CF     PUSH R28
+0A19  93DF     PUSH R29
+0A1A  01EC     MOVW R28, R24
+0A1B  DFDD     RCALL 0x9F9
+0A1C  EE87     LDI R24, 0xE7
+0A1D  E091     LDI R25, 0x01
+0A1E  8399     STD Y+1, R25
+0A1F  8388     ST Y, R24
+266:           //    prescaler = PRESCALER1024; // see ATiny85 data sheet p80
+267:               outputCompareMatchValueA = 255; //OCR1A data sheet p91
+0A20  EF8F     LDI R24, 0xFF
+0A21  838E     STD Y+6, R24
+268:               outputCompareMatchValueB = 255; //OCR1B data sheet p91
+0A22  838F     STD Y+7, R24
+269:               dutyCycle = 100; //in %
+0A23  E694     LDI R25, 0x64
+0A24  8798     STD Y+8, R25
+270:               period = 255; //PWM mode, OCR1C data sheet p92
+0A25  8789     STD Y+9, R24
+271:           };
+0A26  91DF     POP R29
+0A27  91CF     POP R28
+0A28  9508     RET
+272:           
+273:           Timer1Attiny85* Timer1Attiny85::getInstance(void) {
+274:           #ifndef __AVR_ATtiny85__
+275:           #error "libTimer not implemented for selected MUC."
+276:           #endif
+277:               return &pInstance;
+278:           }
+279:           
+280:           void Timer1Attiny85::setPrescaler(uint8_t argSemaphoreKey, clockPrescaler_t argPrescaler) {
+07DC  931F     PUSH R17
+07DD  93CF     PUSH R28
+07DE  93DF     PUSH R29
+07DF  01EC     MOVW R28, R24
+07E0  2F14     MOV R17, R20
+281:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+07E1  E08F     LDI R24, 0x0F
+07E2  E092     LDI R25, 0x02
+07E3  D260     RCALL 0xA44
+07E4  2388     AND R24, R24
+07E5  F059     BREQ 0x7F1
+282:                   prescaler = argPrescaler;
+07E6  831D     STD Y+5, R17
+283:                   if (timerState == BUSSY_STATE) {//update register only, when allready running. Otherwise timer will be started
+07E7  818C     LDD R24, Y+4
+07E8  3082     CPI R24, 0x02
+07E9  F439     BRNE 0x7F1
+284:                       setPrescalerRegister();
+07EA  81E8     LD R30, Y
+07EB  81F9     LDD R31, Y+1
+07EC  8C04     LDD R0, Z+28
+07ED  8DF5     LDD R31, Z+29
+07EE  2DE0     MOV R30, R0
+07EF  01CE     MOVW R24, R28
+07F0  9509     ICALL
+285:                   }
+286:               }
+287:           }
+07F1  91DF     POP R29
+07F2  91CF     POP R28
+07F3  911F     POP R17
+07F4  9508     RET
+288:           
+289:           void Timer1Attiny85::setOutputCompareMatchValue(uint8_t argSemaphoreKey, ocr_t argOcrSelect, uint8_t argOcrValue) {
+07F5  92FF     PUSH R15
+07F6  930F     PUSH R16
+07F7  931F     PUSH R17
+07F8  93CF     PUSH R28
+07F9  93DF     PUSH R29
+07FA  01EC     MOVW R28, R24
+07FB  2F16     MOV R17, R22
+07FC  2F04     MOV R16, R20
+07FD  2EF2     MOV R15, R18
+290:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+07FE  E08F     LDI R24, 0x0F
+07FF  E092     LDI R25, 0x02
+0800  D243     RCALL 0xA44
+0801  2388     AND R24, R24
+0802  F0B1     BREQ 0x819
+291:                   if (argOcrSelect == OCR_A) {
+0803  1101     CPSE R16, R1
+0804  C005     RJMP 0x80A
+292:                       outputCompareMatchValueA = argOcrValue;
+0805  82FE     STD Y+6, R15
+293:                       OCR1A = outputCompareMatchValueA;
+0806  BCFE     OUT 0x2E, R15
+294:                       OCR1C = outputCompareMatchValueA;
+0807  818E     LDD R24, Y+6
+0808  BD8D     OUT 0x2D, R24
+0809  C006     RJMP 0x810
+295:                   } else if (argOcrSelect == OCR_B) {
+080A  3001     CPI R16, 0x01
+080B  F421     BRNE 0x810
+296:                       outputCompareMatchValueB = argOcrValue;
+080C  82FF     STD Y+7, R15
+297:                       OCR1B = outputCompareMatchValueB;
+080D  BCFB     OUT 0x2B, R15
+298:                       OCR1C = outputCompareMatchValueB;
+080E  818F     LDD R24, Y+7
+080F  BD8D     OUT 0x2D, R24
+299:                   }
+300:                   activateOutputCompareMatchInterrupt(argSemaphoreKey, argOcrSelect);
+0810  81E8     LD R30, Y
+0811  81F9     LDD R31, Y+1
+0812  8802     LDD R0, Z+18
+0813  89F3     LDD R31, Z+19
+0814  2DE0     MOV R30, R0
+0815  2F40     MOV R20, R16
+0816  2F61     MOV R22, R17
+0817  01CE     MOVW R24, R28
+0818  9509     ICALL
+301:               }
+302:           }
+0819  91DF     POP R29
+081A  91CF     POP R28
+081B  911F     POP R17
+081C  910F     POP R16
+081D  90FF     POP R15
+081E  9508     RET
+303:           
+304:           void Timer1Attiny85::activateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
+081F  93CF     PUSH R28
+0820  2FC4     MOV R28, R20
+305:               //sei() musst be called by the user/application    
+306:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+0821  E08F     LDI R24, 0x0F
+0822  E092     LDI R25, 0x02
+0823  D220     RCALL 0xA44
+0824  2388     AND R24, R24
+0825  F089     BREQ 0x837
+307:                   if (argOcrSelect == OCR_A) {
+0826  11C1     CPSE R28, R1
+0827  C007     RJMP 0x82F
+308:                       TIMSK |= (1 << OCIE1A);
+0828  B789     IN R24, 0x39
+0829  6480     ORI R24, 0x40
+082A  BF89     OUT 0x39, R24
+309:                       TIMSK &= ~(1 << OCIE1B);
+082B  B789     IN R24, 0x39
+082C  7D8F     ANDI R24, 0xDF
+082D  BF89     OUT 0x39, R24
+082E  C008     RJMP 0x837
+310:                   } else if (argOcrSelect == OCR_B) {
+082F  30C1     CPI R28, 0x01
+0830  F431     BRNE 0x837
+311:                       TIMSK |= (1 << OCIE1B);
+0831  B789     IN R24, 0x39
+0832  6280     ORI R24, 0x20
+0833  BF89     OUT 0x39, R24
+312:                       TIMSK &= ~(1 << OCIE1A);
+0834  B789     IN R24, 0x39
+0835  7B8F     ANDI R24, 0xBF
+0836  BF89     OUT 0x39, R24
+313:                   }
+314:               }
+315:           }
+0837  91CF     POP R28
+0838  9508     RET
+316:           
+317:           void Timer1Attiny85::deactivateOutputCompareMatchInterrupt(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
+0839  93CF     PUSH R28
+083A  2FC4     MOV R28, R20
+318:               //cli() musst be called by the user/application    
+319:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+083B  E08F     LDI R24, 0x0F
+083C  E092     LDI R25, 0x02
+083D  D206     RCALL 0xA44
+083E  2388     AND R24, R24
+083F  F059     BREQ 0x84B
+320:                   if (argOcrSelect == OCR_A) {
+0840  11C1     CPSE R28, R1
+0841  C004     RJMP 0x846
+321:                       TIMSK &= ~(1 << OCIE1A);
+0842  B789     IN R24, 0x39
+0843  7B8F     ANDI R24, 0xBF
+0844  BF89     OUT 0x39, R24
+0845  C005     RJMP 0x84B
+322:                   } else if (argOcrSelect == OCR_B) {
+0846  30C1     CPI R28, 0x01
+0847  F419     BRNE 0x84B
+323:                       TIMSK &= ~(1 << OCIE1B);
+0848  B789     IN R24, 0x39
+0849  7D8F     ANDI R24, 0xDF
+084A  BF89     OUT 0x39, R24
+324:                   }
+325:               }
+326:           }
+084B  91CF     POP R28
+084C  9508     RET
+327:           
+328:           void Timer1Attiny85::activateOverflowInterrupt(uint8_t argSemaphoreKey) {
+329:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+084D  E08F     LDI R24, 0x0F
+084E  E092     LDI R25, 0x02
+084F  D1F4     RCALL 0xA44
+0850  2388     AND R24, R24
+0851  F019     BREQ 0x855
+330:                   TIMSK |= (1 << TOIE1);
+0852  B789     IN R24, 0x39
+0853  6084     ORI R24, 0x04
+0854  BF89     OUT 0x39, R24
+0855  9508     RET
+331:               }
+332:           }
+333:           
+334:           void Timer1Attiny85::deactivateOverflowInterrupt(uint8_t argSemaphoreKey) {
+335:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+0856  E08F     LDI R24, 0x0F
+0857  E092     LDI R25, 0x02
+0858  D1EB     RCALL 0xA44
+0859  2388     AND R24, R24
+085A  F019     BREQ 0x85E
+336:                   TIMSK &= ~(1 << TOIE1);
+085B  B789     IN R24, 0x39
+085C  7F8B     ANDI R24, 0xFB
+085D  BF89     OUT 0x39, R24
+085E  9508     RET
+337:               }
+338:           }
+339:           
+340:           void Timer1Attiny85::configTimerCompareMatch(uint8_t argSemaphoreKey, ocr_t argOcrSelect) {
+085F  930F     PUSH R16
+0860  931F     PUSH R17
+0861  93CF     PUSH R28
+0862  93DF     PUSH R29
+0863  01EC     MOVW R28, R24
+0864  2F16     MOV R17, R22
+0865  2F04     MOV R16, R20
+341:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+0866  E08F     LDI R24, 0x0F
+0867  E092     LDI R25, 0x02
+0868  D1DB     RCALL 0xA44
+0869  2388     AND R24, R24
+086A  F1B9     BREQ 0x8A2
+342:                   if (timerState == BUSSY_STATE) {
+086B  818C     LDD R24, Y+4
+086C  3082     CPI R24, 0x02
+086D  F589     BRNE 0x89F
+343:                       stop(argSemaphoreKey);
+086E  81E8     LD R30, Y
+086F  81F9     LDD R31, Y+1
+0870  8402     LDD R0, Z+10
+0871  85F3     LDD R31, Z+11
+0872  2DE0     MOV R30, R0
+0873  2F61     MOV R22, R17
+0874  01CE     MOVW R24, R28
+0875  9509     ICALL
+344:                       reset(argSemaphoreKey);
+0876  81E8     LD R30, Y
+0877  81F9     LDD R31, Y+1
+0878  8404     LDD R0, Z+12
+0879  85F5     LDD R31, Z+13
+087A  2DE0     MOV R30, R0
+087B  2F61     MOV R22, R17
+087C  01CE     MOVW R24, R28
+087D  9509     ICALL
+345:                   }
+346:                   if (argOcrSelect == OCR_A) {
+087E  1101     CPSE R16, R1
+087F  C004     RJMP 0x884
+089F  2300     AND R16, R16
+08A0  F2F9     BREQ 0x880
+08A1  CFE2     RJMP 0x884
+347:                       OCR1C = outputCompareMatchValueA;
+0880  818E     LDD R24, Y+6
+0881  BD8D     OUT 0x2D, R24
+348:                       OCR1A = outputCompareMatchValueA;
+0882  818E     LDD R24, Y+6
+0883  BD8E     OUT 0x2E, R24
+349:                   } else if (argOcrSelect == OCR_A) {
+350:                       OCR1C = outputCompareMatchValueB;
+351:                       OCR1B = outputCompareMatchValueB;
+352:                   }
+353:           
+354:                   //CTC mode data sheet p 89
+355:                   TCCR1 |= (1 << CTC1);
+0884  B780     IN R24, 0x30
+0885  6880     ORI R24, 0x80
+0886  BF80     OUT 0x30, R24
+356:           
+357:                   //normal port operation -> datasheet p 89
+358:                   TCCR1 &= ~((1 << COM1A1) | (1 << COM1A0));
+0887  B780     IN R24, 0x30
+0888  7C8F     ANDI R24, 0xCF
+0889  BF80     OUT 0x30, R24
+359:                   GTCCR &= ~((1 << COM1B1) | (1 << COM1B0));
+088A  B58C     IN R24, 0x2C
+088B  7C8F     ANDI R24, 0xCF
+088C  BD8C     OUT 0x2C, R24
+360:           
+361:                   activateOutputCompareMatchInterrupt(argSemaphoreKey, argOcrSelect);
+088D  81E8     LD R30, Y
+088E  81F9     LDD R31, Y+1
+088F  8802     LDD R0, Z+18
+0890  89F3     LDD R31, Z+19
+0891  2DE0     MOV R30, R0
+0892  2F40     MOV R20, R16
+0893  2F61     MOV R22, R17
+0894  01CE     MOVW R24, R28
+0895  9509     ICALL
+362:                   start(argSemaphoreKey);
+0896  81E8     LD R30, Y
+0897  81F9     LDD R31, Y+1
+0898  8400     LDD R0, Z+8
+0899  85F1     LDD R31, Z+9
+089A  2DE0     MOV R30, R0
+089B  2F61     MOV R22, R17
+089C  01CE     MOVW R24, R28
+089D  9509     ICALL
+363:               }
+364:           }
+089E  C003     RJMP 0x8A2
+08A2  91DF     POP R29
+08A3  91CF     POP R28
+08A4  911F     POP R17
+08A5  910F     POP R16
+08A6  9508     RET
+365:           
+366:           void Timer1Attiny85::configTimerOverflow(uint8_t argSemaphoreKey) {
+08A7  931F     PUSH R17
+08A8  93CF     PUSH R28
+08A9  93DF     PUSH R29
+08AA  01EC     MOVW R28, R24
+08AB  2F16     MOV R17, R22
+367:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+08AC  E08F     LDI R24, 0x0F
+08AD  E092     LDI R25, 0x02
+08AE  D195     RCALL 0xA44
+08AF  2388     AND R24, R24
+08B0  F109     BREQ 0x8D2
+368:                   //if neither PWM nor compare match timer is set, set to normal mode
+369:                   //otherwise, don't change the setting of the running mode
+370:                   if (timerState != BUSSY_STATE) {
+08B1  818C     LDD R24, Y+4
+08B2  3082     CPI R24, 0x02
+08B3  F071     BREQ 0x8C2
+371:           
+372:                       //normal mode data sheet p 89
+373:                       TCCR1 &= ~((1 << CTC1) | (1 << PWM1A));
+08B4  B780     IN R24, 0x30
+08B5  738F     ANDI R24, 0x3F
+08B6  BF80     OUT 0x30, R24
+374:           
+375:                       period = 255;
+08B7  EF8F     LDI R24, 0xFF
+08B8  8789     STD Y+9, R24
+376:                       OCR1C = period; //compar match value to reset the counter and trigger the overflow
+08B9  BD8D     OUT 0x2D, R24
+377:           
+378:                       //normal port operation -> datasheet p 89
+379:                       TCCR1 &= ~((1 << COM1A1) | (1 << COM1A0));
+08BA  B780     IN R24, 0x30
+08BB  7C8F     ANDI R24, 0xCF
+08BC  BF80     OUT 0x30, R24
+380:                       GTCCR &= ~((1 << COM1B1) | (1 << COM1B0));
+08BD  B58C     IN R24, 0x2C
+08BE  7C8F     ANDI R24, 0xCF
+08BF  BD8C     OUT 0x2C, R24
+381:           
+382:                       timerState = IDLE_STATE;
+08C0  E081     LDI R24, 0x01
+08C1  838C     STD Y+4, R24
+383:                   }
+384:                   activateOverflowInterrupt(argSemaphoreKey);
+08C2  81E8     LD R30, Y
+08C3  81F9     LDD R31, Y+1
+08C4  8806     LDD R0, Z+22
+08C5  89F7     LDD R31, Z+23
+08C6  2DE0     MOV R30, R0
+08C7  2F61     MOV R22, R17
+08C8  01CE     MOVW R24, R28
+08C9  9509     ICALL
+385:                   start(argSemaphoreKey);
+08CA  81E8     LD R30, Y
+08CB  81F9     LDD R31, Y+1
+08CC  8400     LDD R0, Z+8
+08CD  85F1     LDD R31, Z+9
+08CE  2DE0     MOV R30, R0
+08CF  2F61     MOV R22, R17
+08D0  01CE     MOVW R24, R28
+08D1  9509     ICALL
+386:               }
+387:           }
+08D2  91DF     POP R29
+08D3  91CF     POP R28
+08D4  911F     POP R17
+08D5  9508     RET
+388:           
+389:           void Timer1Attiny85::setPeriod(uint8_t argSemaphoreKey, uint8_t argPeriod) {
+390:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+391:                   period = argPeriod;
+392:                   OCR1C = period;
+393:               }
+394:           }
+395:           
+396:           void Timer1Attiny85::setDutyCycle(uint8_t argSemaphoreKey, uint8_t argPin, uint8_t argDutyCycle) {
+097F  930F     PUSH R16
+0980  931F     PUSH R17
+0981  93CF     PUSH R28
+0982  93DF     PUSH R29
+0983  01EC     MOVW R28, R24
+0984  2F14     MOV R17, R20
+0985  2F02     MOV R16, R18
+397:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+0986  E08F     LDI R24, 0x0F
+0987  E092     LDI R25, 0x02
+0988  D0BB     RCALL 0xA44
+0989  2388     AND R24, R24
+098A  F0E9     BREQ 0x9A8
+398:                   if (argDutyCycle > 100)
+098B  3605     CPI R16, 0x65
+098C  F018     BRCS 0x990
+399:                       dutyCycle = 100;
+098D  E684     LDI R24, 0x64
+098E  8788     STD Y+8, R24
+098F  C001     RJMP 0x991
+400:                   else
+401:                       dutyCycle = argDutyCycle;
+0990  8708     STD Y+8, R16
+402:                   if (argPin == PB1)
+0991  3011     CPI R17, 0x01
+0992  F451     BRNE 0x99D
+403:                       OCR1A = calculateDutyCycleRegisterValue(period);
+099B  BD6E     OUT 0x2E, R22
+099C  C00B     RJMP 0x9A8
+404:                   else if (argPin == PB4)
+099D  3014     CPI R17, 0x04
+099E  F449     BRNE 0x9A8
+405:                       OCR1B = calculateDutyCycleRegisterValue(period);
+09A7  BD6B     OUT 0x2B, R22
+406:               }
+407:           }
+09A8  91DF     POP R29
+09A9  91CF     POP R28
+09AA  911F     POP R17
+09AB  910F     POP R16
+09AC  9508     RET
+408:           
+409:           void Timer1Attiny85::configPwm(uint8_t argSemaphoreKey, uint8_t argPin) {
+08D6  930F     PUSH R16
+08D7  931F     PUSH R17
+08D8  93CF     PUSH R28
+08D9  93DF     PUSH R29
+08DA  01EC     MOVW R28, R24
+08DB  2F16     MOV R17, R22
+08DC  2F04     MOV R16, R20
+410:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+08DD  E08F     LDI R24, 0x0F
+08DE  E092     LDI R25, 0x02
+08DF  D164     RCALL 0xA44
+08E0  2388     AND R24, R24
+08E1  F409     BRNE 0x8E3
+08E2  C03F     RJMP 0x922
+411:                   if (timerState == BUSSY_STATE) {
+08E3  818C     LDD R24, Y+4
+08E4  3082     CPI R24, 0x02
+08E5  F481     BRNE 0x8F6
+412:                       stop(argSemaphoreKey);
+08E6  81E8     LD R30, Y
+08E7  81F9     LDD R31, Y+1
+08E8  8402     LDD R0, Z+10
+08E9  85F3     LDD R31, Z+11
+08EA  2DE0     MOV R30, R0
+08EB  2F61     MOV R22, R17
+08EC  01CE     MOVW R24, R28
+08ED  9509     ICALL
+413:                       reset(argSemaphoreKey);
+08EE  81E8     LD R30, Y
+08EF  81F9     LDD R31, Y+1
+08F0  8404     LDD R0, Z+12
+08F1  85F5     LDD R31, Z+13
+08F2  2DE0     MOV R30, R0
+08F3  2F61     MOV R22, R17
+08F4  01CE     MOVW R24, R28
+08F5  9509     ICALL
+414:                   }
+415:           
+416:                   setDutyCycle(argSemaphoreKey, argPin, dutyCycle);
+08F6  81E8     LD R30, Y
+08F7  81F9     LDD R31, Y+1
+08F8  8C02     LDD R0, Z+26
+08F9  8DF3     LDD R31, Z+27
+08FA  2DE0     MOV R30, R0
+08FB  8528     LDD R18, Y+8
+08FC  2F40     MOV R20, R16
+08FD  2F61     MOV R22, R17
+08FE  01CE     MOVW R24, R28
+08FF  9509     ICALL
+417:           
+418:                   if (argPin == PB1) {
+0900  3001     CPI R16, 0x01
+0901  F451     BRNE 0x90C
+419:                       //config PWM, Top = OCR1C data sheet p 89
+420:                       TCCR1 |= (1 << PWM1A);
+0902  B780     IN R24, 0x30
+0903  6480     ORI R24, 0x40
+0904  BF80     OUT 0x30, R24
+421:                       //clear output pin on compare match, set at bottom -> datasheet p 78
+422:                       TCCR1 |= (1 << COM1A1);
+0905  B780     IN R24, 0x30
+0906  6280     ORI R24, 0x20
+0907  BF80     OUT 0x30, R24
+423:                       TCCR1 &= ~(1 << COM1A0);
+0908  B780     IN R24, 0x30
+0909  7E8F     ANDI R24, 0xEF
+090A  BF80     OUT 0x30, R24
+090B  C00B     RJMP 0x917
+424:                   } else if (argPin == PB4) {
+090C  3004     CPI R16, 0x04
+090D  F449     BRNE 0x917
+425:                       //config PWM, Top = OCR1C data sheet p 90
+426:                       GTCCR |= (1 << PWM1B);
+090E  B58C     IN R24, 0x2C
+090F  6480     ORI R24, 0x40
+0910  BD8C     OUT 0x2C, R24
+427:                       //clear output pin on compare match, set at bottom -> datasheet p 78
+428:                       GTCCR |= (1 << COM1B1);
+0911  B58C     IN R24, 0x2C
+0912  6280     ORI R24, 0x20
+0913  BD8C     OUT 0x2C, R24
+429:                       GTCCR &= ~(1 << COM1B0);
+0914  B58C     IN R24, 0x2C
+0915  7E8F     ANDI R24, 0xEF
+0916  BD8C     OUT 0x2C, R24
+430:                   }
+431:                   //no compare match interrupt required
+432:                   TIMSK &= ~((1 << OCIE0A) | (1 << OCIE0B));
+0917  B789     IN R24, 0x39
+0918  7E87     ANDI R24, 0xE7
+0919  BF89     OUT 0x39, R24
+433:           
+434:                   start(argSemaphoreKey);
+091A  81E8     LD R30, Y
+091B  81F9     LDD R31, Y+1
+091C  8400     LDD R0, Z+8
+091D  85F1     LDD R31, Z+9
+091E  2DE0     MOV R30, R0
+091F  2F61     MOV R22, R17
+0920  01CE     MOVW R24, R28
+0921  9509     ICALL
+435:               }
+436:           }
+0922  91DF     POP R29
+0923  91CF     POP R28
+0924  911F     POP R17
+0925  910F     POP R16
+0926  9508     RET
+437:           
+438:           void Timer1Attiny85::setPrescalerRegister(void) {
+439:               //data sheet p 89
+440:               switch (prescaler) {
+05C9  01DC     MOVW R26, R24
+05CA  9615     ADIW R26, 0x05
+05CB  91EC     LD R30, X
+05CC  2F8E     MOV R24, R30
+05CD  E090     LDI R25, 0x00
+05CE  308F     CPI R24, 0x0F
+05CF  0591     CPC R25, R1
+05D0  F008     BRCS 0x5D2
+05D1  C06A     RJMP 0x63C
+05D2  01FC     MOVW R30, R24
+05D3  5FE1     SUBI R30, 0xF1
+05D4  4FFF     SBCI R31, 0xFF
+05D5  9409     IJMP
+441:                   case PRESCALER1:
+442:                       TCCR1 &= ~((1 << CS13) | (1 << CS12) | (1 << CS11));
+05D6  B780     IN R24, 0x30
+05D7  7F81     ANDI R24, 0xF1
+05D8  BF80     OUT 0x30, R24
+443:                       TCCR1 |= (1 << CS10);
+05D9  B780     IN R24, 0x30
+05DA  6081     ORI R24, 0x01
+05DB  BF80     OUT 0x30, R24
+444:                       break;
+05DC  9508     RET
+445:                   case PRESCALER2:
+446:                       TCCR1 &= ~((1 << CS13) | (1 << CS12) | (1 << CS10));
+05DD  B780     IN R24, 0x30
+05DE  7F82     ANDI R24, 0xF2
+05DF  BF80     OUT 0x30, R24
+447:                       TCCR1 |= (1 << CS11);
+05E0  B780     IN R24, 0x30
+05E1  6082     ORI R24, 0x02
+05E2  BF80     OUT 0x30, R24
+448:                       break;
+05E3  9508     RET
+449:                   case PRESCALER4:
+450:                       TCCR1 &= ~((1 << CS13) | (1 << CS12));
+05E4  B780     IN R24, 0x30
+05E5  7F83     ANDI R24, 0xF3
+05E6  BF80     OUT 0x30, R24
+451:                       TCCR1 |= ((1 << CS11) | (1 << CS10));
+05E7  B780     IN R24, 0x30
+05E8  6083     ORI R24, 0x03
+05E9  BF80     OUT 0x30, R24
+452:                       break;
+05EA  9508     RET
+453:                   case PRESCALER8:
+454:                       TCCR1 &= ~((1 << CS13) | (1 << CS11) | (1 << CS10));
+05EB  B780     IN R24, 0x30
+05EC  7F84     ANDI R24, 0xF4
+05ED  BF80     OUT 0x30, R24
+455:                       TCCR1 |= (1 << CS12);
+05EE  B780     IN R24, 0x30
+05EF  6084     ORI R24, 0x04
+05F0  BF80     OUT 0x30, R24
+456:                       break;
+05F1  9508     RET
+457:                   case PRESCALER16:
+458:                       TCCR1 &= ~((1 << CS13) | (1 << CS11));
+05F2  B780     IN R24, 0x30
+05F3  7F85     ANDI R24, 0xF5
+05F4  BF80     OUT 0x30, R24
+459:                       TCCR1 |= ((1 << CS12) | (1 << CS10));
+05F5  B780     IN R24, 0x30
+05F6  6085     ORI R24, 0x05
+05F7  BF80     OUT 0x30, R24
+460:                       break;
+05F8  9508     RET
+461:                   case PRESCALER32:
+462:                       TCCR1 &= ~((1 << CS13) | (1 << CS10));
+05F9  B780     IN R24, 0x30
+05FA  7F86     ANDI R24, 0xF6
+05FB  BF80     OUT 0x30, R24
+463:                       TCCR1 |= ((1 << CS12) | (1 << CS11));
+05FC  B780     IN R24, 0x30
+05FD  6086     ORI R24, 0x06
+05FE  BF80     OUT 0x30, R24
+464:                       break;
+05FF  9508     RET
+465:                   case PRESCALER64:
+466:                       TCCR1 &= ~(1 << CS13);
+0600  B780     IN R24, 0x30
+0601  7F87     ANDI R24, 0xF7
+0602  BF80     OUT 0x30, R24
+467:                       TCCR1 |= ((1 << CS12) | (1 << CS11) | (1 << CS10));
+0603  B780     IN R24, 0x30
+0604  6087     ORI R24, 0x07
+0605  BF80     OUT 0x30, R24
+468:                       break;
+0606  9508     RET
+469:                   case PRESCALER128:
+470:                       TCCR1 |= (1 << CS13);
+0607  B780     IN R24, 0x30
+0608  6088     ORI R24, 0x08
+0609  BF80     OUT 0x30, R24
+471:                       TCCR1 &= ~((1 << CS12) | (1 << CS11) | (1 << CS10));
+060A  B780     IN R24, 0x30
+060B  7F88     ANDI R24, 0xF8
+060C  BF80     OUT 0x30, R24
+472:                       break;
+060D  9508     RET
+473:                   case PRESCALER256:
+474:                       TCCR1 |= ((1 << CS13) | (1 << CS10));
+060E  B780     IN R24, 0x30
+060F  6089     ORI R24, 0x09
+0610  BF80     OUT 0x30, R24
+475:                       TCCR1 &= ~((1 << CS12) | (1 << CS11));
+0611  B780     IN R24, 0x30
+0612  7F89     ANDI R24, 0xF9
+0613  BF80     OUT 0x30, R24
+476:                       break;
+0614  9508     RET
+477:                   case PRESCALER512:
+478:                       TCCR1 |= ((1 << CS13) | (1 << CS11));
+0615  B780     IN R24, 0x30
+0616  608A     ORI R24, 0x0A
+0617  BF80     OUT 0x30, R24
+479:                       TCCR1 &= ~((1 << CS12) | (1 << CS10));
+0618  B780     IN R24, 0x30
+0619  7F8A     ANDI R24, 0xFA
+061A  BF80     OUT 0x30, R24
+480:                       break;
+061B  9508     RET
+481:                   case PRESCALER1024:
+482:                       TCCR1 |= ((1 << CS13) | (1 << CS11) | (1 << CS10));
+061C  B780     IN R24, 0x30
+061D  608B     ORI R24, 0x0B
+061E  BF80     OUT 0x30, R24
+483:                       TCCR1 &= ~(1 << CS12);
+061F  B780     IN R24, 0x30
+0620  7F8B     ANDI R24, 0xFB
+0621  BF80     OUT 0x30, R24
+484:                       break;
+0622  9508     RET
+485:                   case PRESCALER2048:
+486:                       TCCR1 |= ((1 << CS13) | (1 << CS12));
+0623  B780     IN R24, 0x30
+0624  608C     ORI R24, 0x0C
+0625  BF80     OUT 0x30, R24
+487:                       TCCR1 &= ~((1 << CS11) | (1 << CS10));
+0626  B780     IN R24, 0x30
+0627  7F8C     ANDI R24, 0xFC
+0628  BF80     OUT 0x30, R24
+488:                       break;
+0629  9508     RET
+489:                   case PRESCALER4096:
+490:                       TCCR1 |= ((1 << CS13) | (1 << CS12) | (1 << CS10));
+062A  B780     IN R24, 0x30
+062B  608D     ORI R24, 0x0D
+062C  BF80     OUT 0x30, R24
+491:                       TCCR1 &= ~(1 << CS11);
+062D  B780     IN R24, 0x30
+062E  7F8D     ANDI R24, 0xFD
+062F  BF80     OUT 0x30, R24
+492:                       break;
+0630  9508     RET
+493:                   case PRESCALER8129:
+494:                       TCCR1 |= ((1 << CS13) | (1 << CS12) | (1 << CS11));
+0631  B780     IN R24, 0x30
+0632  608E     ORI R24, 0x0E
+0633  BF80     OUT 0x30, R24
+495:                       TCCR1 &= ~(1 << CS10);
+0634  B780     IN R24, 0x30
+0635  7F8E     ANDI R24, 0xFE
+0636  BF80     OUT 0x30, R24
+496:                       break;
+0637  9508     RET
+497:                   case PRESCALER16384:
+498:                       TCCR1 |= ((1 << CS13) | (1 << CS12) | (1 << CS11) | (1 << CS10));
+0638  B780     IN R24, 0x30
+0639  608F     ORI R24, 0x0F
+063A  BF80     OUT 0x30, R24
+499:                       break;
+063B  9508     RET
+500:                   default://timer stopped
+501:                       TCCR1 &= ~((1 << CS13) | (1 << CS12) | (1 << CS11) | (1 << CS10));
+063C  B780     IN R24, 0x30
+063D  7F80     ANDI R24, 0xF0
+063E  BF80     OUT 0x30, R24
+063F  9508     RET
+502:                       break;
+503:               }
+504:           }
+505:           
+506:           void Timer1Attiny85::start(uint8_t argSemaphoreKey) {
+0927  931F     PUSH R17
+0928  93CF     PUSH R28
+0929  93DF     PUSH R29
+092A  01EC     MOVW R28, R24
+092B  2F16     MOV R17, R22
+507:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+092C  E08F     LDI R24, 0x0F
+092D  E092     LDI R25, 0x02
+092E  D115     RCALL 0xA44
+092F  2388     AND R24, R24
+0930  F089     BREQ 0x942
+508:                   timerState = BUSSY_STATE;
+0931  E082     LDI R24, 0x02
+0932  838C     STD Y+4, R24
+509:                   reset(argSemaphoreKey);
+0933  81E8     LD R30, Y
+0934  81F9     LDD R31, Y+1
+0935  8404     LDD R0, Z+12
+0936  85F5     LDD R31, Z+13
+0937  2DE0     MOV R30, R0
+0938  2F61     MOV R22, R17
+0939  01CE     MOVW R24, R28
+093A  9509     ICALL
+510:                   setPrescalerRegister();
+093B  81E8     LD R30, Y
+093C  81F9     LDD R31, Y+1
+093D  8C04     LDD R0, Z+28
+093E  8DF5     LDD R31, Z+29
+093F  2DE0     MOV R30, R0
+0940  01CE     MOVW R24, R28
+0941  9509     ICALL
+511:               }
+512:           }
+0942  91DF     POP R29
+0943  91CF     POP R28
+0944  911F     POP R17
+0945  9508     RET
+513:           
+514:           void Timer1Attiny85::stop(uint8_t argSemaphoreKey) {
+0946  93CF     PUSH R28
+0947  93DF     PUSH R29
+0948  01EC     MOVW R28, R24
+515:               //data sheet p 89
+516:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+0949  E08F     LDI R24, 0x0F
+094A  E092     LDI R25, 0x02
+094B  D0F8     RCALL 0xA44
+094C  2388     AND R24, R24
+094D  F029     BREQ 0x953
+517:                   timerState = IDLE_STATE;
+094E  E081     LDI R24, 0x01
+094F  838C     STD Y+4, R24
+518:                   TCCR1 &= ~((1 << CS13) | (1 << CS12) | (1 << CS11) | (1 << CS10));
+0950  B780     IN R24, 0x30
+0951  7F80     ANDI R24, 0xF0
+0952  BF80     OUT 0x30, R24
+519:               }
+520:           }
+0953  91DF     POP R29
+0954  91CF     POP R28
+0955  9508     RET
+521:           
+522:           void Timer1Attiny85::reset(uint8_t argSemaphoreKey) {
+523:               if (pSemaphore.checkKey(argSemaphoreKey))
+0956  E08F     LDI R24, 0x0F
+0957  E092     LDI R25, 0x02
+0958  D0EB     RCALL 0xA44
+0959  1181     CPSE R24, R1
+524:                   TCNT1 = 0x00; //reset counter register data sheet p 80
+095A  BC1F     OUT 0x2F, R1
+095B  9508     RET
+525:           }
+526:           
+527:           void Timer1Attiny85::cleanup(uint8_t argSemaphoreKey) {
+095C  931F     PUSH R17
+095D  93CF     PUSH R28
+095E  93DF     PUSH R29
+095F  01EC     MOVW R28, R24
+0960  2F16     MOV R17, R22
+528:               if (pSemaphore.checkKey(argSemaphoreKey)) {
+0961  E08F     LDI R24, 0x0F
+0962  E092     LDI R25, 0x02
+0963  D0E0     RCALL 0xA44
+0964  2388     AND R24, R24
+0965  F0A9     BREQ 0x97B
+529:                   stop(argSemaphoreKey);
+0966  81E8     LD R30, Y
+0967  81F9     LDD R31, Y+1
+0968  8402     LDD R0, Z+10
+0969  85F3     LDD R31, Z+11
+096A  2DE0     MOV R30, R0
+096B  2F61     MOV R22, R17
+096C  01CE     MOVW R24, R28
+096D  9509     ICALL
+530:                   reset(argSemaphoreKey);
+096E  81E8     LD R30, Y
+096F  81F9     LDD R31, Y+1
+0970  8404     LDD R0, Z+12
+0971  85F5     LDD R31, Z+13
+0972  2DE0     MOV R30, R0
+0973  2F61     MOV R22, R17
+0974  01CE     MOVW R24, R28
+0975  9509     ICALL
+531:                   TCCR1 = 0x00; //reset timer control register data sheet p 80
+0976  BE10     OUT 0x30, R1
+532:                   //reset interrupt mask register data sheet p 81
+533:                   TIMSK &= ~((1 << OCIE1A) | (1 << OCIE1B) | (1 << TOIE1));
+0977  B789     IN R24, 0x39
+0978  798B     ANDI R24, 0x9B
+0979  BF89     OUT 0x39, R24
+534:                   timerState = INIT_STATE;
+097A  821C     STD Y+4, R1
+535:               }
+536:           }
+097B  91DF     POP R29
+097C  91CF     POP R28
+097D  911F     POP R17
+097E  9508     RET
+537:           
+538:           //------------------------------------------------------------------
+539:           // Stuff
+540:           //------------------------------------------------------------------
+541:           
+542:           //the following line prevents a linker error
+543:           //"undefined reference to `__cxa_pure_virtual'"
+544:           
+545:           extern "C" void __cxa_pure_virtual() {
+0A29  CFFF     RJMP 0xA29
+546:               while (1);
+547:           }
+---  /home/johannes/Seafile/Arduino_Workspace/Mplab/ooAVRlib/libUartTx.X/lib/libIOHandler.cpp  ----------
+1:             // see header for description and other information
+2:             // copyright applies according to LICENSE_software.md in GitHub root folder
+3:             
+4:             #include "libIOHandler.h"
+5:             
+6:             libIOHandler::libIOHandler(void){
+0046  93CF     PUSH R28
+0047  93DF     PUSH R29
+0048  D000     RCALL 0x49
+0049  B7CD     IN R28, 0x3D
+004A  B7DE     IN R29, 0x3E
+004B  839A     STD Y+2, R25
+004C  8389     STD Y+1, R24
+7:                 version.major = 0;
+004D  8189     LDD R24, Y+1
+004E  819A     LDD R25, Y+2
+004F  01FC     MOVW R30, R24
+0050  8210     ST Z, R1
+8:                 version.minor = 1;
+0051  8189     LDD R24, Y+1
+0052  819A     LDD R25, Y+2
+0053  E021     LDI R18, 0x01
+0054  01FC     MOVW R30, R24
+0055  8321     STD Z+1, R18
+9:             }
+0056  0000     NOP
+0057  900F     POP R0
+0058  900F     POP R0
+0059  91DF     POP R29
+005A  91CF     POP R28
+005B  9508     RET
+10:            
+11:            ver_t libIOHandler::getVersion(void){
+005C  93CF     PUSH R28
+005D  93DF     PUSH R29
+005E  D000     RCALL 0x5F
+005F  B7CD     IN R28, 0x3D
+0060  B7DE     IN R29, 0x3E
+0061  839A     STD Y+2, R25
+0062  8389     STD Y+1, R24
+12:                return version;
+0063  8189     LDD R24, Y+1
+0064  819A     LDD R25, Y+2
+0065  01FC     MOVW R30, R24
+0066  8180     LD R24, Z
+0067  8191     LDD R25, Z+1
+13:            }
+0068  900F     POP R0
+0069  900F     POP R0
+006A  91DF     POP R29
+006B  91CF     POP R28
+006C  9508     RET
+14:            
+15:            void libIOHandler::setPinOutput(uint8_t argPin){
+006D  93CF     PUSH R28
+006E  93DF     PUSH R29
+006F  D000     RCALL 0x70
+0070  D000     RCALL 0x71
+0071  B7CD     IN R28, 0x3D
+0072  B7DE     IN R29, 0x3E
+0073  839B     STD Y+3, R25
+0074  838A     STD Y+2, R24
+0075  836C     STD Y+4, R22
+16:                uint8_t ddrPin = getDdr(argPin);   
+0076  818A     LDD R24, Y+2
+0077  819B     LDD R25, Y+3
+0078  816C     LDD R22, Y+4
+0079  D10B     RCALL _ZN14Timer0Attiny8535activateOutputCompareMatchInterruptEh5ocr_t
+007A  8389     STD Y+1, R24
+17:                DDRB |= (1 << ddrPin);
+007B  E387     LDI R24, 0x37
+007C  E090     LDI R25, 0x00
+007D  E327     LDI R18, 0x37
+007E  E030     LDI R19, 0x00
+007F  01F9     MOVW R30, R18
+0080  8120     LD R18, Z
+0081  2F62     MOV R22, R18
+0082  8129     LDD R18, Y+1
+0083  2F42     MOV R20, R18
+0084  E050     LDI R21, 0x00
+0085  E021     LDI R18, 0x01
+0086  E030     LDI R19, 0x00
+0087  C002     RJMP _ZN14Timer0Attiny8520setPrescalerRegisterEv
+0088  0F22     ADD R18, R18
+0089  1F33     ADC R19, R19
+008A  954A     DEC R20
+008B  F7E2     BRPL _ZN14Timer0Attiny8520setPrescalerRegisterEv
+008C  2B26     OR R18, R22
+008D  01FC     MOVW R30, R24
+008E  8320     ST Z, R18
+18:                setPinLow(argPin);
+008F  818A     LDD R24, Y+2
+0090  819B     LDD R25, Y+3
+0091  816C     LDD R22, Y+4
+0092  D02C     RCALL _ZN14Timer1Attiny8520setPrescalerRegisterEv
+19:            }
+0093  0000     NOP
+0094  900F     POP R0
+0095  900F     POP R0
+0096  900F     POP R0
+0097  900F     POP R0
+0098  91DF     POP R29
+0099  91CF     POP R28
+009A  9508     RET
+20:                  
+21:            void libIOHandler::setPinHigh(uint8_t argPin){
+009B  93CF     PUSH R28
+009C  93DF     PUSH R29
+009D  D000     RCALL _ZN14Timer0Attiny8520setPrescalerRegisterEv
+009E  921F     PUSH R1
+009F  B7CD     IN R28, 0x3D
+00A0  B7DE     IN R29, 0x3E
+00A1  839A     STD Y+2, R25
+00A2  8389     STD Y+1, R24
+00A3  836B     STD Y+3, R22
+22:                PORTB |= (1 << argPin); 
+00A4  E388     LDI R24, 0x38
+00A5  E090     LDI R25, 0x00
+00A6  E328     LDI R18, 0x38
+00A7  E030     LDI R19, 0x00
+00A8  01F9     MOVW R30, R18
+00A9  8120     LD R18, Z
+00AA  2F62     MOV R22, R18
+00AB  812B     LDD R18, Y+3
+00AC  2F42     MOV R20, R18
+00AD  E050     LDI R21, 0x00
+00AE  E021     LDI R18, 0x01
+00AF  E030     LDI R19, 0x00
+00B0  C002     RJMP _ZN14Timer1Attiny8520setPrescalerRegisterEv
+00B1  0F22     ADD R18, R18
+00B2  1F33     ADC R19, R19
+00B3  954A     DEC R20
+00B4  F7E2     BRPL _ZN14Timer1Attiny8520setPrescalerRegisterEv
+00B5  2B26     OR R18, R22
+00B6  01FC     MOVW R30, R24
+00B7  8320     ST Z, R18
+23:            }
+00B8  0000     NOP
+00B9  900F     POP R0
+00BA  900F     POP R0
+00BB  900F     POP R0
+00BC  91DF     POP R29
+00BD  91CF     POP R28
+00BE  9508     RET
+24:            
+25:            void libIOHandler::setPinLow(uint8_t argPin){
+00BF  93CF     PUSH R28
+00C0  93DF     PUSH R29
+00C1  D000     RCALL _ZN14Timer1Attiny8520setPrescalerRegisterEv
+00C2  921F     PUSH R1
+00C3  B7CD     IN R28, 0x3D
+00C4  B7DE     IN R29, 0x3E
+00C5  839A     STD Y+2, R25
+00C6  8389     STD Y+1, R24
+00C7  836B     STD Y+3, R22
+26:                PORTB &= ~(1 << argPin); 
+00C8  E388     LDI R24, 0x38
+00C9  E090     LDI R25, 0x00
+00CA  E328     LDI R18, 0x38
+00CB  E030     LDI R19, 0x00
+00CC  01F9     MOVW R30, R18
+00CD  8120     LD R18, Z
+00CE  2F62     MOV R22, R18
+00CF  812B     LDD R18, Y+3
+00D0  2F42     MOV R20, R18
+00D1  E050     LDI R21, 0x00
+00D2  E021     LDI R18, 0x01
+00D3  E030     LDI R19, 0x00
+00D4  C002     RJMP _ZN14Timer1Attiny8520setPrescalerRegisterEv
+00D5  0F22     ADD R18, R18
+00D6  1F33     ADC R19, R19
+00D7  954A     DEC R20
+00D8  F7E2     BRPL _ZN14Timer1Attiny8520setPrescalerRegisterEv
+00D9  9520     COM R18
+00DA  2326     AND R18, R22
+00DB  01FC     MOVW R30, R24
+00DC  8320     ST Z, R18
+27:            }
+00DD  0000     NOP
+00DE  900F     POP R0
+00DF  900F     POP R0
+00E0  900F     POP R0
+00E1  91DF     POP R29
+00E2  91CF     POP R28
+00E3  9508     RET
+28:            
+29:            void libIOHandler::togglePin(uint8_t argPin){
+00E4  93CF     PUSH R28
+00E5  93DF     PUSH R29
+00E6  D000     RCALL _ZN14Timer1Attiny8520setPrescalerRegisterEv
+00E7  921F     PUSH R1
+00E8  B7CD     IN R28, 0x3D
+00E9  B7DE     IN R29, 0x3E
+00EA  839A     STD Y+2, R25
+00EB  8389     STD Y+1, R24
+00EC  836B     STD Y+3, R22
+30:                PORTB ^= (1 << argPin); 
+00ED  E388     LDI R24, 0x38
+00EE  E090     LDI R25, 0x00
+00EF  E328     LDI R18, 0x38
+00F0  E030     LDI R19, 0x00
+00F1  01F9     MOVW R30, R18
+00F2  8120     LD R18, Z
+00F3  2F62     MOV R22, R18
+00F4  812B     LDD R18, Y+3
+00F5  2F42     MOV R20, R18
+00F6  E050     LDI R21, 0x00
+00F7  E021     LDI R18, 0x01
+00F8  E030     LDI R19, 0x00
+00F9  C002     RJMP _ZN14Timer1Attiny8520setPrescalerRegisterEv
+00FA  0F22     ADD R18, R18
+00FB  1F33     ADC R19, R19
+00FC  954A     DEC R20
+00FD  F7E2     BRPL _ZN14Timer1Attiny8520setPrescalerRegisterEv
+00FE  2726     EOR R18, R22
+00FF  01FC     MOVW R30, R24
+0100  8320     ST Z, R18
+31:            }
+0101  0000     NOP
+0102  900F     POP R0
+0103  900F     POP R0
+0104  900F     POP R0
+0105  91DF     POP R29
+0106  91CF     POP R28
+0107  9508     RET
+32:            
+33:            void libIOHandler::setPinInput(uint8_t argPin, uint8_t argPullUp){
+0108  93CF     PUSH R28
+0109  93DF     PUSH R29
+010A  D000     RCALL _ZN14Timer1Attiny8520setPrescalerRegisterEv
+010B  D000     RCALL _ZN14Timer1Attiny8520setPrescalerRegisterEv
+010C  921F     PUSH R1
+010D  B7CD     IN R28, 0x3D
+010E  B7DE     IN R29, 0x3E
+010F  839B     STD Y+3, R25
+0110  838A     STD Y+2, R24
+0111  836C     STD Y+4, R22
+0112  834D     STD Y+5, R20
+34:                uint8_t ddrPin = getDdr(argPin);
+0113  818A     LDD R24, Y+2
+0114  819B     LDD R25, Y+3
+0115  816C     LDD R22, Y+4
+0116  D06E     RCALL _ZN14Timer0Attiny8535activateOutputCompareMatchInterruptEh5ocr_t
+0117  8389     STD Y+1, R24
+35:                
+36:                DDRB &= ~(1 << ddrPin);
+0118  E387     LDI R24, 0x37
+0119  E090     LDI R25, 0x00
+011A  E327     LDI R18, 0x37
+011B  E030     LDI R19, 0x00
+011C  01F9     MOVW R30, R18
+011D  8120     LD R18, Z
+011E  2F62     MOV R22, R18
+011F  8129     LDD R18, Y+1
+0120  2F42     MOV R20, R18
+0121  E050     LDI R21, 0x00
+0122  E021     LDI R18, 0x01
+0123  E030     LDI R19, 0x00
+0124  C002     RJMP _ZN14Timer0Attiny8512setPrescalerEh16clockPrescaler_t
+0125  0F22     ADD R18, R18
+0126  1F33     ADC R19, R19
+0127  954A     DEC R20
+0128  F7E2     BRPL _ZN14Timer1Attiny8520setPrescalerRegisterEv
+0129  9520     COM R18
+012A  2326     AND R18, R22
+012B  01FC     MOVW R30, R24
+012C  8320     ST Z, R18
+37:                
+38:                if(argPullUp){
+012D  818D     LDD R24, Y+5
+012E  2388     AND R24, R24
+012F  F0A9     BREQ _ZN14Timer0Attiny8526setOutputCompareMatchValueEh5ocr_th
+39:                    PORTB |= (1 << argPin);
+0130  E388     LDI R24, 0x38
+0131  E090     LDI R25, 0x00
+0132  E328     LDI R18, 0x38
+0133  E030     LDI R19, 0x00
+0134  01F9     MOVW R30, R18
+0135  8120     LD R18, Z
+0136  2F62     MOV R22, R18
+0137  812C     LDD R18, Y+4
+0138  2F42     MOV R20, R18
+0139  E050     LDI R21, 0x00
+013A  E021     LDI R18, 0x01
+013B  E030     LDI R19, 0x00
+013C  C002     RJMP _ZN14Timer1Attiny8520setPrescalerRegisterEv
+013D  0F22     ADD R18, R18
+013E  1F33     ADC R19, R19
+013F  954A     DEC R20
+0140  F7E2     BRPL _ZN14Timer1Attiny8520setPrescalerRegisterEv
+0141  2B26     OR R18, R22
+0142  01FC     MOVW R30, R24
+0143  8320     ST Z, R18
+40:                }
+41:                else{
+42:                    PORTB &= ~(1 << argPin);
+0145  E388     LDI R24, 0x38
+0146  E090     LDI R25, 0x00
+0147  E328     LDI R18, 0x38
+0148  E030     LDI R19, 0x00
+0149  01F9     MOVW R30, R18
+014A  8120     LD R18, Z
+014B  2F62     MOV R22, R18
+014C  812C     LDD R18, Y+4
+014D  2F42     MOV R20, R18
+014E  E050     LDI R21, 0x00
+014F  E021     LDI R18, 0x01
+0150  E030     LDI R19, 0x00
+0151  C002     RJMP _ZN14Timer0Attiny8526setOutputCompareMatchValueEh5ocr_th
+0152  0F22     ADD R18, R18
+0153  1F33     ADC R19, R19
+0154  954A     DEC R20
+0155  F7E2     BRPL _ZN14Timer0Attiny8526setOutputCompareMatchValueEh5ocr_th
+0156  9520     COM R18
+0157  2326     AND R18, R22
+0158  01FC     MOVW R30, R24
+0159  8320     ST Z, R18
+43:                }
+44:            }
+0144  C015     RJMP _ZN14Timer0Attiny8526setOutputCompareMatchValueEh5ocr_th
+015A  0000     NOP
+015B  900F     POP R0
+015C  900F     POP R0
+015D  900F     POP R0
+015E  900F     POP R0
+015F  900F     POP R0
+0160  91DF     POP R29
+0161  91CF     POP R28
+0162  9508     RET
+45:            
+46:            uint8_t libIOHandler::readPinRaw(uint8_t argPin){
+0163  93CF     PUSH R28
+0164  93DF     PUSH R29
+0165  D000     RCALL _ZN14Timer0Attiny8535activateOutputCompareMatchInterruptEh5ocr_t
+0166  D000     RCALL _ZN14Timer0Attiny8535activateOutputCompareMatchInterruptEh5ocr_t
+0167  B7CD     IN R28, 0x3D
+0168  B7DE     IN R29, 0x3E
+0169  839B     STD Y+3, R25
+016A  838A     STD Y+2, R24
+016B  836C     STD Y+4, R22
+47:                uint8_t pinState = PINB & (1 << argPin);
+016C  E386     LDI R24, 0x36
+016D  E090     LDI R25, 0x00
+016E  01FC     MOVW R30, R24
+016F  8180     LD R24, Z
+0170  2F48     MOV R20, R24
+0171  818C     LDD R24, Y+4
+0172  2F28     MOV R18, R24
+0173  E030     LDI R19, 0x00
+0174  E081     LDI R24, 0x01
+0175  E090     LDI R25, 0x00
+0176  C002     RJMP _ZN14Timer0Attiny8535activateOutputCompareMatchInterruptEh5ocr_t
+0177  0F88     ADD R24, R24
+0178  1F99     ADC R25, R25
+0179  952A     DEC R18
+017A  F7E2     BRPL _ZN14Timer0Attiny8535activateOutputCompareMatchInterruptEh5ocr_t
+017B  2384     AND R24, R20
+017C  8389     STD Y+1, R24
+48:                return pinState;
+017D  8189     LDD R24, Y+1
+49:            }   
+017E  900F     POP R0
+017F  900F     POP R0
+0180  900F     POP R0
+0181  900F     POP R0
+0182  91DF     POP R29
+0183  91CF     POP R28
+0184  9508     RET
+50:            
+51:            /*
+52:            void configureInterrupt(uint8_t argPin, uint8_t argTriggerType, 
+53:            uint8_t argTriggerState){
+54:                
+55:                
+56:                
+57:            }
+58:            
+59:            void enableInterruptOnPin(uint8_t argPin){
+60:                
+61:                
+62:                
+63:            }
+64:            void disableInterruptOnPin(uint8_t argPin){
+65:                
+66:                
+67:                
+68:            } */
+69:            
+70:            uint8_t libIOHandler::getDdr(uint8_t argPin){
+0185  93CF     PUSH R28
+0186  93DF     PUSH R29
+0187  D000     RCALL _ZN14Timer0Attiny8535activateOutputCompareMatchInterruptEh5ocr_t
+0188  D000     RCALL _ZN14Timer0Attiny8535activateOutputCompareMatchInterruptEh5ocr_t
+0189  B7CD     IN R28, 0x3D
+018A  B7DE     IN R29, 0x3E
+018B  839B     STD Y+3, R25
+018C  838A     STD Y+2, R24
+018D  836C     STD Y+4, R22
+71:                uint8_t ddrPin = 0;
+018E  8219     STD Y+1, R1
+72:                
+73:                #ifdef __AVR_ATtiny85__
+74:                    switch (argPin){
+018F  818C     LDD R24, Y+4
+0190  2F88     MOV R24, R24
+0191  E090     LDI R25, 0x00
+0192  3082     CPI R24, 0x02
+0193  0591     CPC R25, R1
+0194  F099     BREQ _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+0195  3083     CPI R24, 0x03
+0196  0591     CPC R25, R1
+0197  F42C     BRGE _ZN14Timer0Attiny8527deactivateOverflowInterruptEh
+0198  9700     SBIW R24, 0x00
+0199  F049     BREQ _ZN14Timer0Attiny8525activateOverflowInterruptEh
+019A  9701     SBIW R24, 0x01
+019B  F049     BREQ _ZN14Timer0Attiny8525activateOverflowInterruptEh
+019C  C014     RJMP _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+019D  3083     CPI R24, 0x03
+019E  0591     CPC R25, R1
+019F  F059     BREQ _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+01A0  9704     SBIW R24, 0x04
+01A1  F061     BREQ _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+01A2  C00E     RJMP _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+75:                        case PB0:
+76:                            ddrPin    = DDB0;
+01A3  8219     STD Y+1, R1
+77:                            break;
+01A4  C00C     RJMP _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+78:                        case PB1:
+79:                            ddrPin    = DDB1;
+01A5  E081     LDI R24, 0x01
+01A6  8389     STD Y+1, R24
+80:                            break;
+01A7  C009     RJMP _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+81:                        case PB2:
+82:                            ddrPin    = DDB2;            
+01A8  E082     LDI R24, 0x02
+01A9  8389     STD Y+1, R24
+83:                            break;
+01AA  C006     RJMP _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+84:                        case PB3:
+85:                            ddrPin    = DDB3;             
+01AB  E083     LDI R24, 0x03
+01AC  8389     STD Y+1, R24
+86:                            break;
+01AD  C003     RJMP _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+87:                        case PB4:
+88:                            ddrPin    = DDB4; 
+01AE  E084     LDI R24, 0x04
+01AF  8389     STD Y+1, R24
+89:                            break;
+01B0  0000     NOP
+90:                    }    
+91:                #elif
+92:                    #error "libIOHandler not implemented for selected MUC."
+93:                #endif
+94:            
+95:                return ddrPin;
+01B1  8189     LDD R24, Y+1
+96:            }
+01B2  900F     POP R0
+01B3  900F     POP R0
+01B4  900F     POP R0
+01B5  900F     POP R0
+01B6  91DF     POP R29
+01B7  91CF     POP R28
+01B8  9508     RET
+---  ././././crt1/gcrt1.S  ------------------------------------------------------------------------------
+0000  C01F     RJMP 0x20
+0001  C043     RJMP 0x45
+0002  C042     RJMP 0x45
+0003  C041     RJMP 0x45
+0004  C040     RJMP 0x45
+0005  C1D4     RJMP _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+0006  C03E     RJMP 0x45
+0007  C03D     RJMP 0x45
+0008  C03C     RJMP 0x45
+0009  C03B     RJMP 0x45
+000A  C1AE     RJMP _ZN14Timer0Attiny8523configTimerCompareMatchEh5ocr_t
+000B  C039     RJMP 0x45
+000C  C038     RJMP 0x45
+000D  C037     RJMP 0x45
+000E  C036     RJMP 0x45
+0045  CFBA     RJMP __vectors
+0020  2411     EOR R1, R1
+0021  BE1F     OUT 0x3F, R1
+0022  E5CF     LDI R28, 0x5F
+0023  E0D2     LDI R29, 0x02
+0024  BFDE     OUT 0x3E, R29
+0025  BFCD     OUT 0x3D, R28
+0043  D2E0     RCALL _ZN14Timer1Attiny8537deactivateOutputCompareMatchInterruptEh5ocr_t
+0044  CA5B     RJMP 0xFFFFFFFFFFFFFAA0

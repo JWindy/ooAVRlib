@@ -33,24 +33,14 @@
 
 //--------------------------------------------------------------------
 /* ToDo: 
-//  - implement for Timer0 and Timer1? -> libTimer
-//  - store OCRA in eeprom?
-//      - define adress
-//      - if value is 0 run the tuning algorithm and use value from source code
-//      - if there is a plausible value, use the value and skip the tuning algorithm
-//  - implement UartTxRx
-//  - compare bit bang implementatation (hackaday) to USI implementation (make)
-//  - can UartTx implemented based on bit bang and USI in one class? maybe abstract libUartTx
-//      and lower level libUSI and libBitBangUartTx? 
-//      What is the advantage of USI over bitbang? Compare size of static compiled library
-//  - implement libUSI?
+  - replace switch case in template to constexp
+  - pass timer as argument to Ctor?
+  - replace stop and reset timer in ISR by class function -> declare ISR as friend of the class
+  - store OCRA in eeprom?
+      - define adress
+      - if value is 0 run the tuning algorithm and use value from source code
+      - if there is a plausible value, use the value and skip the tuning algorithm
 
-//  Backlog:
-//      - implement for other processor speed -> fix BAUD rate?
-//      - extend for Attiny 84
-//      - implement return value, if device bussy and several users have access to the services
-//  Rx
-//      - try to implement Tx with USI as well. Deactivate Rx while sending
 //--------------------------------------------------------------------*/
 
 #ifndef LIBUARTTX_H
@@ -60,79 +50,89 @@
 
 #include <avr/io.h>
 #include "ioMapUartTx.h"
-#include "libUtility.h"     //v0.1
+#include "libUtility.h"     //v0.2
 #include "libIOHandler.h"   //v0.1
+#include "libTimer.h"       //v0.2
+
+#define timer0 //comment to select timer1
+
+#ifndef timer0
+#define timer1
+#endif
 
 #ifndef __AVR_ATtiny85__
-    #error "Library supports ATtiny 85 only, which is not set in project setup."
+#error "Library supports ATtiny 85 only, which is not set in project setup."
 #endif
 
 //--------------------------------------------------------------------
-//global variables required by ISR
+//global variables required by ISR -> ToDo try to define ISR as friend to class and get rid of global variable
 const uint8_t txPin = UART_Tx_PIN;
-static volatile uint16_t txShiftReg = 0; 
+static volatile uint16_t txShiftReg = 0;
 
 //--------------------------------------------------------------------
-class UartTx{
+
+template <typename T>
+class UartTxSingleton;
+
+namespace nsUartTxImpl {
+
+    class UartTxImpl {
     public:
-        static UartTx* getInstance(void);  
-        
-        void    setOcr0aValue(uint8_t argOcr0aValue);
-        
-        void    printStr(const char* argString);
-        void    printStrLn (const char* argString);
-        void    printLn(void);
-                
-        void    printBinaryByte(uint8_t argByte);
-        
-        //must be implemented in header. Otherwise linker error...
-        template <typename T> void printNum(T argNum){
+        void setOcrValue(uint8_t argOcrValue);
+
+        void printStr(const char* argString);
+        void printStrLn(const char* argString);
+        void printLn(void);
+
+        void printBinaryByte(uint8_t argByte);
+
+        //must be defined in header. Otherwise linker error...
+
+        template <typename T> void printNum(T argNum) {
             T i = 0;
             T initValue = 1;
             T temp = 0;
             T unsignedValue = argNum;
             uint8_t shiftValueSign = 0;
             uint8_t startTransmission = 0;
-            
-            switch(sizeof(argNum)){
+
+            switch (sizeof (argNum)) {
                 case 1://1 byte
                     initValue = 100;
-                    if(argNum < 0)
+                    if (argNum < 0)
                         shiftValueSign = 7;
                     break;
                 case 2://2 byte
-                    initValue = (T)10000L;
-                    if(argNum < 0)
+                    initValue = (T) 10000L;
+                    if (argNum < 0)
                         shiftValueSign = 15;
                     break;
-        //        default:
+                    //        default:
                     //how to handel errors?
                     //32-bit integer, float, any other complex data type
                     //break;
             }
 
             //convert unsigned to signed
-            if(shiftValueSign){//shiftValueSign == 0 if unsigned
-                if ((unsignedValue & 1 << shiftValueSign) != 0 ){//check if sign is negative
-                    transmitByte('-'); 
+            if (shiftValueSign) {//shiftValueSign == 0 if unsigned
+                if ((unsignedValue & 1 << shiftValueSign) != 0) {//check if sign is negative
+                    transmitByte('-');
                     //wrong for -128 and -32768 -> exception handeled below
                     unsignedValue = -unsignedValue;
                 }
             }
-            if(argNum != -128L && argNum != -32768L)
-                for (i = initValue; i >= 1; i/=10){
+            if (argNum != -128L && argNum != -32768L)
+                for (i = initValue; i >= 1; i /= 10) {
                     temp = (unsignedValue / i) % 10;
-                    if(startTransmission == 0 && temp > 0)//get rid of leading zeros
+                    if (startTransmission == 0 && temp > 0)//get rid of leading zeros
                         startTransmission = 1;
-                    if(startTransmission)
-                        transmitByte('0' + temp); 
-                }     
-            else if(argNum == -128L){//'-' is send futher up the code
+                    if (startTransmission)
+                        transmitByte('0' + temp);
+                } else if (argNum == -128L) {//'-' is send futher up the code
                 transmitByte('1');
                 transmitByte('2');
                 transmitByte('8');
-            }
-            else{
+            } else {
                 transmitByte('3');
                 transmitByte('2');
                 transmitByte('7');
@@ -140,21 +140,77 @@ class UartTx{
                 transmitByte('8');
             }
         };
-       
-    protected:
-        //implemented as singelton -> hidden constructor
-        //can only be called by class itself
-        UartTx(void);
-        
-    private:        
-        ver_t   version;
-        status_t status;
-        uint8_t ocr0aValue;
-        static UartTx pInstance;
-        
+
+        Semaphore* pSemaphore;
+
+        IOHandler* pIOHandler;
+
+    private:
+        UartTxImpl(uint8_t argNumberOfUser);
+
+        //allows the initialisation function to access the Ctor
+        friend class UartTxSingleton<nsUartTxImpl::UartTxImpl>;
+
+        ver_t version;
+        status_t uartTxState;
+
+        uint8_t ocrValue;
+
         void transmitByte(uint8_t argByte);
         status_t getStatus(void);
+        uint8_t timerKey;
+
+#ifdef timer0 //ToDo pass timer to instantiateObject and forward to Ctor
+        nsTimerImpl::TimerImpl<ATTINYX5, TIMER0>* myTimer;
+#endif
+#ifdef timer1
+        nsTimerImpl::TimerImpl<ATTINYX5, TIMER1>* myTimer;
+#endif
+
+    }; //UartTxImpl
+
+}//namespace UartTxImpl
+
+template <typename T>
+class UartTxSingleton {
+public:
+
+    //Initialises the singleton object
+    //Call this function before using any of its methods. 
+    //Calling initialise ensures that the object exists upon usage. Otherwise
+    //undevined behavious might occure, since the compiler can move the 
+    //instantiation to a later point in time.
+
+    static void initialiseUartTx(uint8_t argNumberOfUsers) {
+        if (refCount == 0) {
+            T* tmp = reinterpret_cast<T*> (buffer);
+            *tmp = nsUartTxImpl::UartTxImpl(argNumberOfUsers);
+            tmp->uartTxState = READY_STATE;
+
+            *tmp->pSemaphore = Semaphore(argNumberOfUsers);
+            *tmp->pIOHandler = IOHandler();
+            refCount = 1;
+        }
+    }
+
+    //Returns the one and only singleton instance of the class
+
+    static T* getInstance(void) {
+        return (reinterpret_cast<T*> (buffer));
+    }
+
+private:
+    UartTxSingleton(void);
+    static char buffer[sizeof (T)];
+    static uint8_t refCount;
 };
 
-#endif	/* LIBUARTTX_H */
+template<typename T>
+char UartTxSingleton<T>::buffer[];
 
+template<typename T>
+uint8_t UartTxSingleton<T>::refCount = 0;
+
+typedef UartTxSingleton<nsUartTxImpl::UartTxImpl> UartTx;
+
+#endif	/* LIBUARTTX_H */
