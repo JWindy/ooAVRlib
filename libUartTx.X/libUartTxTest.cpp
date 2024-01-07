@@ -24,11 +24,12 @@ int main(void) {
     const uint8_t testUint8 = 10;
     const uint8_t testUint8_2 = 255;
     const int8_t testInt8 = -128;
-    const int8_t testInt8_2 = -127;
+    const int8_t testInt8_2 = testInt8 + 1;
     const int8_t testInt8_3 = 127;
+    
     const uint16_t testUint16 = 65535UL;
     const int16_t testInt16 = -32768L;
-    const int16_t testInt16_2 = -32767L;
+    const int16_t testInt16_2 = testInt16 + 1;
     const int16_t testInt16_3 = 32767L;
 
     const uint8_t ocrInitValue = 103;

@@ -5,7 +5,7 @@
 #include <avr/interrupt.h>
 
 #ifndef LIBUARTTX_CPP
-#    define	LIBUARTTX_CPP
+#    define LIBUARTTX_CPP
 
 //timer0 compare A match interrupt
 #    ifdef timer0
@@ -33,10 +33,6 @@ ISR(TIM0_COMPA_vect) {
     SREG = sregTemp;
 };
 #    endif
-
-ISR(TIM0_OVF_vect) { //ToDo delete
-    TCNT0 = 0;
-}
 
 //timer1 compare A match interrupt
 #    ifdef timer1

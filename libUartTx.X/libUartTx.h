@@ -4,7 +4,8 @@
                     the class. If created again, the adress of the existing 
                     object is returned.
                 Supports 8bit binary, int8, uint8, int16, uint16, string
-                Any kind of floating point and 32-bit numbers are not supported
+                Any kind of floating point and 32-bit numbers are not supported.
+                    Code will fail silently. 
                 Any digital pin can be selected as Tx pin
                 While sending data, the library blocks the CPU. Keep strings short!
  
@@ -33,14 +34,14 @@
 
 //--------------------------------------------------------------------
 /* ToDo: 
-  - replace switch case in template to constexp
-  - pass timer as argument to Ctor?
+  - pass timer as argument to Ctor? 
+        - Must be a compare match interrupt. 
+        - How to handle ISR? template argument? or fix timer per MUC?
+        - for attiny 85, only timer 1. Overflow Timer 0 for scheduler.
   - replace stop and reset timer in ISR by class function -> declare ISR as friend of the class
-  - store OCRA in eeprom?
-      - define adress
-      - if value is 0 run the tuning algorithm and use value from source code
-      - if there is a plausible value, use the value and skip the tuning algorithm
-
+  - test for all optimization levels and both timers
+    - add c library paths to setup routine of mplab project
+  
 //--------------------------------------------------------------------*/
 
 #ifndef LIBUARTTX_H
@@ -86,31 +87,29 @@ namespace nsUartTxImpl {
 
         void printBinaryByte(uint8_t argByte);
 
-        //must be defined in header. Otherwise linker error...
-
-        template <typename T> void printNum(T argNum) {
-            T i = 0;
-            T initValue = 1;
+        //must be defined in header. Otherwise linker error...        
+        template <typename T> void printNum(const T argNum) {
+            T initValue; //not initialized to hopfully have the compiler optimize the code
             T temp = 0;
             T unsignedValue = argNum;
             uint8_t shiftValueSign = 0;
             uint8_t startTransmission = 0;
 
-            switch (sizeof (argNum)) {
-                case 1://1 byte
-                    initValue = 100;
-                    if (argNum < 0)
-                        shiftValueSign = 7;
-                    break;
-                case 2://2 byte
-                    initValue = (T) 10000L;
-                    if (argNum < 0)
-                        shiftValueSign = 15;
-                    break;
-                    //        default:
-                    //how to handel errors?
-                    //32-bit integer, float, any other complex data type
-                    //break;
+            const uint8_t sizeArgNum = sizeof (argNum);
+
+            if (sizeArgNum == 1) {  
+                initValue = 100;
+                if (argNum < 0)
+                    shiftValueSign = 7;
+            } else if (sizeArgNum == 2) {
+                initValue = (T) 10000L;
+                if (argNum < 0)
+                    shiftValueSign = 15;
+            } else {
+                uartTxState = ERROR_STATE;
+                initValue = 0;
+                //how to handel errors?
+                //32-bit integer, float, any other complex data type
             }
 
             //convert unsigned to signed
@@ -118,16 +117,19 @@ namespace nsUartTxImpl {
                 if ((unsignedValue & 1 << shiftValueSign) != 0) {//check if sign is negative
                     transmitByte('-');
                     //wrong for -128 and -32768 -> exception handeled below
+                    //alternative: make_signed(unsignedValue) https://en.cppreference.com/w/cpp/types/make_signed
                     unsignedValue = -unsignedValue;
                 }
             }
-            if (argNum != -128L && argNum != -32768L)
+            if (argNum != -128L && argNum != -32768L){
+                T i;
                 for (i = initValue; i >= 1; i /= 10) {
                     temp = (unsignedValue / i) % 10;
                     if (startTransmission == 0 && temp > 0)//get rid of leading zeros
                         startTransmission = 1;
                     if (startTransmission)
                         transmitByte('0' + temp);
+                }
                 } else if (argNum == -128L) {//'-' is send futher up the code
                 transmitByte('1');
                 transmitByte('2');
